@@ -3,36 +3,33 @@ interface HomeScreenProps {
   onRanking: () => void;
   bestScore: number | null;
   totalGames: number;
+  nickname: string | null;
+  onChangeNick: () => void;
 }
 
-export function HomeScreen({ onStart, onRanking, bestScore, totalGames }: HomeScreenProps) {
+export function HomeScreen({ onStart, onRanking, bestScore, totalGames, nickname, onChangeNick }: HomeScreenProps) {
   return (
     <div className="home">
-      {/* 배경 장식: 미니 캔들차트 패턴 */}
-      <div className="home-bg-pattern" />
-
       <div className="home-content">
-        {/* 타이틀 */}
         <div className="home-title-area">
-          <div className="home-subtitle-top">방구석</div>
+          <div className="home-sub-top">- 방구석 -</div>
           <h1 className="home-title">픽셀단타왕</h1>
-          <div className="home-subtitle">PIXEL STONKS</div>
+          <div className="home-sub-en">PIXEL STONKS</div>
           <div className="home-chart-deco">
-            📈📉📈📉📈
-          </div>
+          <span className="bar b1" /><span className="bar b2" /><span className="bar b3" />
+          <span className="bar b4" /><span className="bar b5" /><span className="bar b6" />
+          <span className="bar b7" />
+        </div>
         </div>
 
-        {/* 스타트 버튼 */}
-        <button className="btn-retro btn-pixel home-start-btn" onClick={onStart}>
-          ▶ START
+        <button className="btn-retro btn-pixel home-start" onClick={onStart}>
+          {'>'} START
         </button>
 
-        {/* 랭킹 버튼 */}
-        <button className="btn-retro btn-pixel home-ranking-btn" onClick={onRanking}>
-          🏆 RANKING
+        <button className="btn-retro btn-sub home-ranking" onClick={onRanking}>
+          RANKING
         </button>
 
-        {/* 통계 */}
         <div className="home-stats">
           {bestScore !== null && (
             <div className={bestScore >= 0 ? 'profit-positive' : 'profit-negative'}>
@@ -42,120 +39,112 @@ export function HomeScreen({ onStart, onRanking, bestScore, totalGames }: HomeSc
           <div className="home-games">GAMES: {totalGames}</div>
         </div>
 
-        {/* 하단 안내 */}
-        <div className="home-hint">
-          30초 · 매매 3회 · 수익률 경쟁
-        </div>
+        {nickname && (
+          <div className="home-nick" onClick={onChangeNick}>
+            {nickname} ✎
+          </div>
+        )}
+        <div className="home-hint">30초 · 매매 3회 · 수익률 경쟁</div>
       </div>
 
       <style>{`
-        .home {
-          height: 100%;
-          position: relative;
-          overflow: hidden;
-        }
-        .home-bg-pattern {
-          position: absolute;
-          inset: 0;
-          opacity: 0.04;
-          background:
-            repeating-linear-gradient(
-              90deg,
-              var(--muted) 0px,
-              var(--muted) 1px,
-              transparent 1px,
-              transparent 14px
-            );
-        }
+        .home { height: 100%; position: relative; }
         .home-content {
-          position: relative;
-          z-index: 2;
           height: 100%;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 20px;
+          gap: 18px;
           padding: 40px 24px;
         }
-        .home-title-area {
-          text-align: center;
-        }
-        .home-subtitle-top {
-          font-family: var(--font-pixel);
-          font-size: 12px;
-          color: var(--gb-lightest);
-          margin-bottom: 8px;
-          letter-spacing: 8px;
-          opacity: 0.7;
+        .home-title-area { text-align: center; }
+        .home-sub-top {
+          font-size: 13px;
+          color: var(--text-sub);
+          margin-bottom: 6px;
+          letter-spacing: 4px;
         }
         .home-title {
-          font-family: var(--font-pixel);
-          font-size: 22px;
-          color: var(--gb-lightest);
+          font-size: 28px;
+          color: var(--text);
           margin: 0;
-          letter-spacing: 4px;
-          animation: pulseGlow 3s ease-in-out infinite;
-          line-height: 1.6;
+          letter-spacing: 2px;
+          line-height: 1.5;
         }
-        .home-subtitle {
-          font-family: var(--font-pixel);
+        .home-sub-en {
+          font-family: var(--font-en);
           font-size: 10px;
-          color: var(--gb-light);
-          margin-top: 8px;
-          letter-spacing: 8px;
-          opacity: 0.6;
+          color: var(--muted);
+          margin-top: 6px;
+          letter-spacing: 5px;
         }
         .home-chart-deco {
-          margin-top: 16px;
-          font-size: 18px;
-          letter-spacing: 4px;
-          animation: float 4s ease-in-out infinite;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          gap: 4px;
+          margin-top: 14px;
+          height: 28px;
         }
-        .home-start-btn {
+        .bar {
+          width: 6px;
+          border-radius: 2px 2px 0 0;
+          animation: barPulse 2.5s ease-in-out infinite;
+        }
+        .b1 { height: 12px; background: var(--profit); animation-delay: 0s; }
+        .b2 { height: 20px; background: var(--profit); animation-delay: 0.15s; }
+        .b3 { height: 16px; background: var(--loss); animation-delay: 0.3s; }
+        .b4 { height: 24px; background: var(--profit); animation-delay: 0.45s; }
+        .b5 { height: 10px; background: var(--loss); animation-delay: 0.6s; }
+        .b6 { height: 18px; background: var(--profit); animation-delay: 0.75s; }
+        .b7 { height: 28px; background: var(--green); animation-delay: 0.9s; }
+        @keyframes barPulse {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.5); }
+        }
+        .home-start {
           width: 220px;
-          height: 60px;
-          font-size: 18px;
-          letter-spacing: 6px;
+          height: 54px;
+          font-family: var(--font-en);
+          font-size: 16px;
+          letter-spacing: 4px;
           margin-top: 8px;
         }
-        .home-start-btn:hover {
-          background: var(--gb-lightest);
-        }
-        .home-ranking-btn {
+        .home-ranking {
           width: 180px;
           height: 40px;
-          font-size: 10px;
-          letter-spacing: 3px;
-          background: var(--surface);
-          border-color: var(--accent);
-          border-bottom-color: #8a6e10;
-          border-right-color: #8a6e10;
-          color: var(--accent);
-        }
-        .home-ranking-btn:active {
-          background: rgba(255,207,64,0.1);
+          font-family: var(--font-en);
+          font-size: 11px;
+          letter-spacing: 2px;
         }
         .home-stats {
-          font-family: var(--font-pixel);
-          font-size: 10px;
+          font-family: var(--font-en);
+          font-size: 11px;
           text-align: center;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
         .home-games {
           color: var(--muted);
-          font-size: 9px;
+          font-size: 10px;
         }
+        .home-nick {
+          font-size: 11px;
+          color: var(--text-sub);
+          cursor: pointer;
+          padding: 4px 10px;
+          border-radius: 4px;
+          border: 1px solid var(--border);
+          background: var(--surface);
+        }
+        .home-nick:active { background: var(--bg-deep); }
         .home-hint {
-          font-family: var(--font-pixel);
-          font-size: 7px;
+          font-size: 11px;
           color: var(--muted);
-          letter-spacing: 2px;
-          text-align: center;
           position: absolute;
-          bottom: 32px;
+          bottom: 28px;
         }
       `}</style>
     </div>

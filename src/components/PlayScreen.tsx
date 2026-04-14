@@ -1,24 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameState, ScenarioEvent } from '../types';
 import { renderChart } from '../engine/chartRenderer';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 interface PlayScreenProps {
   state: GameState;
   onTrade: (action: 'BUY' | 'SELL' | 'HOLD') => void;
 }
 
-/** 이벤트 배너 색상 */
-const EVENT_COLORS: Record<ScenarioEvent['type'], string> = {
-  info: '#5a6078',
-  bullish: '#3d7ec7',
-  bearish: '#c75050',
-  shock: '#ffcf40',
-};
-
 export function PlayScreen({ state, onTrade }: PlayScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visibleEvent, setVisibleEvent] = useState<ScenarioEvent | null>(null);
   const [eventKey, setEventKey] = useState(0);
+  const [showHint, setShowHint] = useState(() => {
+    const played = localStorage.getItem('pixel-stonks-stats');
+    if (!played) return true;
+    try { return JSON.parse(played).totalGames === 0; } catch { return true; }
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,116 +30,99 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
     });
   }, [state.candles, state.entryPrice]);
 
-  // 이벤트 배너 표시 (3초 후 자동 소멸)
+  useEffect(() => {
+    if (!showHint) return;
+    const t = setTimeout(() => setShowHint(false), 5000);
+    return () => clearTimeout(t);
+  }, [showHint]);
+
   useEffect(() => {
     if (!state.currentEvent) return;
     setVisibleEvent(state.currentEvent);
     setEventKey((k) => k + 1);
-
     const timer = setTimeout(() => setVisibleEvent(null), 3000);
     return () => clearTimeout(timer);
   }, [state.currentEvent]);
 
   const canBuy = state.position === 'NONE' && state.tradesLeft > 0;
-  const canSell = state.position === 'HOLDING' && state.tradesLeft > 0;
+  const canSell = state.position === 'HOLDING';
   const profitSign = state.profitRate >= 0 ? '+' : '';
   const profitClass = state.profitRate >= 0 ? 'profit-positive' : 'profit-negative';
   const isUrgent = state.timeLeft <= 5;
 
-  const profitAmount = state.entryPrice
-    ? Math.round(state.currentPrice - state.entryPrice)
-    : 0;
+  // 잔액 계산
+  const seed = GAME_CONFIG.initialPrice;
+  const currentBalance = state.position === 'HOLDING' && state.entryPrice
+    ? seed + (state.currentPrice - state.entryPrice)
+    : seed + (seed * state.profitRate / 100);
+  const pnl = Math.round(currentBalance - seed);
+  const pnlSign = pnl >= 0 ? '+' : '';
 
   return (
     <div className="play">
-      {/* 상단 바 */}
-      <div className="play-topbar">
+      {/* 상단: 캐릭터 + 매매권 */}
+      <div className="play-top">
         <div className="play-char">
           <span className="play-char-emoji">{state.character?.emoji}</span>
           <span className="play-char-name">{state.character?.name}</span>
         </div>
         <div className="play-trades">
+          <span className="play-trades-label">{state.tradesLeft}</span>
           {Array.from({ length: 3 }, (_, i) => (
-            <span
-              key={i}
-              className={`play-trade-dot ${i < state.tradesLeft ? 'play-trade-active' : 'play-trade-used'}`}
-            >
-              ⚡
-            </span>
+            <span key={i} className={`dot ${i < state.tradesLeft ? 'on' : 'off'}`} />
           ))}
         </div>
       </div>
 
-      {/* 시드 + 손익 */}
-      <div className="play-info">
-        <div className="play-seed">
-          {Math.round(state.currentPrice).toLocaleString()}P
+      {/* 잔액 + 손익 */}
+      <div className="play-balance">
+        <div className="play-balance-amount">
+          {Math.round(currentBalance).toLocaleString()}P
         </div>
-        {state.position === 'HOLDING' && (
-          <div className={`play-profit ${profitClass}`}>
-            {profitSign}{profitAmount.toLocaleString()}P ({profitSign}{state.profitRate.toFixed(1)}%)
-          </div>
-        )}
-        {state.position === 'NONE' && state.entryPrice !== null && (
-          <div className={`play-profit ${profitClass}`}>
-            확정 {profitSign}{state.profitRate.toFixed(1)}%
-          </div>
-        )}
+        <div className={`play-balance-pnl ${pnl >= 0 ? 'profit-positive' : 'profit-negative'}`}>
+          {pnlSign}{pnl.toLocaleString()}P ({profitSign}{state.profitRate.toFixed(1)}%)
+          {state.position === 'NONE' && state.entryPrice !== null && ' 확정'}
+        </div>
       </div>
 
-      {/* 이벤트 뉴스 배너 */}
+      {/* 이벤트 배너 */}
       {visibleEvent && (
-        <div
-          key={eventKey}
-          className={`play-event play-event-${visibleEvent.type}`}
-          style={{
-            borderLeftColor: EVENT_COLORS[visibleEvent.type],
-            '--event-glow': EVENT_COLORS[visibleEvent.type],
-          } as React.CSSProperties}
-        >
-          <span className="play-event-text">{visibleEvent.headline}</span>
+        <div key={eventKey} className={`play-event ev-${visibleEvent.type}`}>
+          {visibleEvent.headline}
         </div>
       )}
 
-      {/* 캔들 차트 */}
-      <div className="play-chart-wrap">
-        <canvas
-          ref={canvasRef}
-          width={360}
-          height={260}
-          className="play-canvas"
-        />
+      {/* 차트 */}
+      <div className="play-chart pixel-panel">
+        <canvas ref={canvasRef} width={360} height={260} className="play-canvas" />
       </div>
 
       {/* 타이머 */}
-      <div className={`timer-text ${isUrgent ? 'timer-urgent' : ''}`}>
-        00:{String(state.timeLeft).padStart(2, '0')}
+      <div className="play-timer-row">
+        <span className="play-speed-badge">x60 압축</span>
+        <span className={`timer-text ${isUrgent ? 'timer-urgent' : ''}`}>
+          00:{String(state.timeLeft).padStart(2, '0')}
+        </span>
+        <span className="play-speed-label">30분 → 30초</span>
       </div>
 
-      {/* 매매 버튼 */}
-      <div className="play-buttons">
-        <button
-          className={`btn-retro btn-pixel btn-buy play-btn`}
-          disabled={!canBuy}
-          onClick={() => onTrade('BUY')}
-        >
-          BUY
-          <span className="play-btn-icon">📈</span>
+      {/* 첫 판 힌트 */}
+      {showHint && (
+        <div className="play-hint" onClick={() => setShowHint(false)}>
+          차트를 보고 BUY로 매수, SELL로 매도! 매매 기회 3회
+        </div>
+      )}
+
+      {/* 버튼 */}
+      <div className="play-btns">
+        <button className="btn-retro btn-buy play-btn" disabled={!canBuy} onClick={() => onTrade('BUY')}>
+          ▲ BUY
         </button>
-        <button
-          className={`btn-retro btn-pixel btn-sell play-btn`}
-          disabled={!canSell}
-          onClick={() => onTrade('SELL')}
-        >
-          SELL
-          <span className="play-btn-icon">📉</span>
+        <button className="btn-retro btn-sell play-btn" disabled={!canSell} onClick={() => onTrade('SELL')}>
+          ▼ SELL
         </button>
-        <button
-          className={`btn-retro btn-pixel btn-hold play-btn`}
-          onClick={() => onTrade('HOLD')}
-        >
-          HOLD
-          <span className="play-btn-icon">⏸</span>
+        <button className="btn-retro btn-hold play-btn" disabled={state.tradesLeft <= 0} onClick={() => onTrade('HOLD')}>
+          ■ HOLD
         </button>
       </div>
 
@@ -150,129 +131,147 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           height: 100%;
           display: flex;
           flex-direction: column;
-          padding: 10px 12px 20px;
-          gap: 8px;
+          padding: 10px 14px 18px;
+          gap: 6px;
         }
-        .play-topbar {
+        .play-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 4px 0;
+          padding: 2px 0;
         }
         .play-char {
           display: flex;
           align-items: center;
           gap: 6px;
         }
-        .play-char-emoji {
-          font-size: 22px;
-        }
+        .play-char-emoji { font-size: 20px; }
         .play-char-name {
-          font-family: var(--font-pixel);
-          font-size: 9px;
-          color: var(--gb-lightest);
+          font-size: 12px;
+          color: var(--text);
         }
         .play-trades {
           display: flex;
           gap: 4px;
+          align-items: center;
         }
-        .play-trade-dot {
-          font-size: 16px;
-          transition: opacity 0.3s;
+        .play-trades-label {
+          font-family: var(--font-en);
+          font-size: 9px;
+          color: var(--text-sub);
+          margin-right: 2px;
         }
-        .play-trade-active {
-          opacity: 1;
-          filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));
+        .dot {
+          width: 8px; height: 8px;
+          border-radius: 2px;
         }
-        .play-trade-used {
-          opacity: 0.2;
-          filter: grayscale(1);
+        .dot.on {
+          background: var(--gold);
+          box-shadow: 0 0 4px rgba(243,156,18,0.4);
         }
-        .play-info {
+        .dot.off {
+          background: var(--border);
+        }
+
+        .play-balance {
           text-align: center;
-          padding: 4px 0;
+          padding: 4px 0 2px;
         }
-        .play-seed {
-          font-family: var(--font-pixel);
-          font-size: 13px;
-          color: var(--gb-lightest);
+        .play-balance-amount {
+          font-family: var(--font-en);
+          font-size: 20px;
+          color: var(--text);
+          font-weight: bold;
         }
-        .play-profit {
-          font-family: var(--font-pixel);
+        .play-balance-pnl {
+          font-family: var(--font-en);
           font-size: 11px;
           margin-top: 2px;
         }
 
-        /* === 이벤트 뉴스 배너 === */
         .play-event {
-          background: var(--surface);
-          border-left: 3px solid var(--accent);
-          padding: 6px 10px;
-          border-radius: 3px;
-          animation: eventSlideIn 0.3s ease-out, eventFadeOut 0.6s 2.4s forwards;
-          box-shadow:
-            0 2px 8px rgba(0,0,0,0.3),
-            inset 0 0 12px rgba(0,0,0,0.15),
-            0 0 8px color-mix(in srgb, var(--event-glow, var(--accent)) 20%, transparent);
-        }
-        .play-event-text {
-          font-family: var(--font-pixel);
-          font-size: 7px;
-          color: var(--gb-lightest);
-          line-height: 1.8;
-          display: block;
-        }
-        .play-event-shock {
-          background: linear-gradient(90deg, rgba(255,207,64,0.12), var(--surface));
-        }
-        .play-event-bullish {
-          background: linear-gradient(90deg, rgba(91,181,245,0.12), var(--surface));
-        }
-        .play-event-bearish {
-          background: linear-gradient(90deg, rgba(240,104,104,0.12), var(--surface));
-        }
-        @keyframes eventSlideIn {
-          from { opacity: 0; transform: translateX(-20px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes eventFadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; transform: translateY(-4px); }
-        }
-
-        .play-chart-wrap {
-          flex: 1 1 auto;
-          min-height: 200px;
-          border: 2px solid var(--surface);
+          padding: 6px 12px;
           border-radius: 4px;
+          font-size: 11px;
+          color: var(--text);
+          border-left: 3px solid var(--muted);
+          background: var(--surface);
+          animation: fadeSlideIn 0.3s ease-out;
+        }
+        .ev-bullish { border-left-color: var(--profit); background: rgba(26,107,206,0.06); }
+        .ev-bearish { border-left-color: var(--loss); background: rgba(214,48,49,0.06); }
+        .ev-shock { border-left-color: var(--accent); background: rgba(230,126,34,0.06); }
+
+        .play-chart {
+          flex: 1 1 auto;
+          min-height: 180px;
           overflow: hidden;
-          background: var(--gb-darkest);
-          box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+          background: #faf8f4;
         }
         .play-canvas {
           width: 100%;
           height: 100%;
           display: block;
         }
-        .play-buttons {
+
+        .play-timer-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .play-speed-badge {
+          font-family: var(--font-en);
+          font-size: 7px;
+          color: var(--accent);
+          border: 1px solid var(--accent);
+          padding: 2px 5px;
+          border-radius: 3px;
+          letter-spacing: 0.5px;
+        }
+        .play-speed-label {
+          font-size: 9px;
+          color: var(--muted);
+        }
+
+        .play-hint {
+          text-align: center;
+          font-size: 11px;
+          color: var(--accent);
+          background: rgba(230,126,34,0.08);
+          border: 1px dashed var(--accent);
+          border-radius: 4px;
+          padding: 6px 10px;
+          animation: fadeSlideIn 0.3s ease-out;
+          cursor: pointer;
+        }
+
+        .play-btns {
           display: flex;
           gap: 6px;
-          padding-top: 4px;
           margin-top: auto;
+          padding-top: 4px;
         }
         .play-btn {
           flex: 1;
-          height: 52px;
+          height: 48px;
+          font-family: var(--font-en);
+          font-size: 12px;
+          border-radius: 4px;
+          border: 2px solid;
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 2px;
-          font-size: 11px;
-          padding: 4px;
+          gap: 4px;
+          color: #fff;
+          transition: opacity 0.15s;
         }
-        .play-btn-icon {
-          font-size: 14px;
+        .play-btn:disabled {
+          opacity: 0.25;
+          filter: grayscale(0.8);
+          cursor: not-allowed;
+          transform: none !important;
+          box-shadow: none !important;
         }
       `}</style>
     </div>

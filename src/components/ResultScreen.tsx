@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameState, ProfitTier } from '../types';
 import { submitScore } from '../services/leaderboard';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 interface ResultScreenProps {
   state: GameState;
@@ -19,14 +20,14 @@ function getTier(profitRate: number): ProfitTier {
   return 'doom';
 }
 
-const TIER_INFO: Record<ProfitTier, { label: string; emoji: string }> = {
-  legend: { label: '전설의 단타왕', emoji: '🏆' },
-  beast: { label: '야수의 심장', emoji: '🥇' },
-  normal: { label: '평타 이상', emoji: '😊' },
-  meh: { label: '그저 그럼', emoji: '😐' },
-  ant: { label: '개미의 삶', emoji: '😢' },
-  dead: { label: '깡통계좌', emoji: '💀' },
-  doom: { label: '전설의 패배', emoji: '🪦' },
+const TIER_INFO: Record<ProfitTier, { label: string; mark: string }> = {
+  legend: { label: '전설의 단타왕', mark: '★★★' },
+  beast: { label: '야수의 심장', mark: '★★' },
+  normal: { label: '평타 이상', mark: '★' },
+  meh: { label: '그저 그럼', mark: '-' },
+  ant: { label: '개미의 삶', mark: '▼' },
+  dead: { label: '깡통계좌', mark: '▼▼' },
+  doom: { label: '전설의 패배', mark: '▼▼▼' },
 };
 
 const MEME_POOL: Record<ProfitTier, string[]> = {
@@ -43,16 +44,27 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+const IDLE_MEMES = [
+  '차트만 구경하고 갑니다',
+  '매수 버튼이 어디 있었죠?',
+  '관망도 전략이다 (진짜?)',
+  '손 안 대면 잃지 않는다... 벌지도 않지만',
+];
+
 export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScreenProps) {
   const profitRate = state.finalProfitRate ?? 0;
-  const tier = getTier(profitRate);
-  const tierInfo = TIER_INFO[tier];
-  const memeRef = useRef(pickRandom(MEME_POOL[tier]));
+  // 한 번도 매수하지 않았는지 체크 (매매권 3개 그대로)
+  const neverBought = state.tradesLeft === GAME_CONFIG.maxTrades;
+  const tier = neverBought ? 'meh' as ProfitTier : getTier(profitRate);
+  const tierInfo = neverBought ? { label: '구경만 함', mark: '👀' } : TIER_INFO[tier];
+  const memeRef = useRef(neverBought ? pickRandom(IDLE_MEMES) : pickRandom(MEME_POOL[tier]));
   const profitClass = profitRate >= 0 ? 'profit-positive' : 'profit-negative';
   const profitSign = profitRate >= 0 ? '+' : '';
-  const isWin = profitRate > 0;
 
-  // 리더보드 제출
+  const pnl = Math.round(GAME_CONFIG.initialPrice * profitRate / 100);
+  const pnlSign = pnl >= 0 ? '+' : '';
+  const finalBalance = GAME_CONFIG.initialPrice + pnl;
+
   const [myRank, setMyRank] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const submitted = useRef(false);
@@ -62,62 +74,63 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
     if (!state.character || !state.scenario) return;
     submitted.current = true;
     setSubmitting(true);
-
     submitScore(profitRate, state.character.id, state.scenario.id)
-      .then(({ rank }) => {
-        setMyRank(rank);
-      })
+      .then(({ rank }) => setMyRank(rank))
       .finally(() => setSubmitting(false));
   }, [profitRate, state.character, state.scenario]);
 
   return (
     <div className="result">
-      {/* 캐릭터 */}
-      <div className="result-char">
-        <span className="result-char-emoji">{state.character?.emoji}</span>
-        <span className="result-char-verdict">{isWin ? '승리!' : '패배...'}</span>
-      </div>
-
       {/* 결과 카드 */}
-      <div className="result-card">
+      <div className="result-card pixel-panel">
+        <div className="result-header">
+          <span className="result-emoji">{state.character?.emoji}</span>
+          <span className="result-verdict">
+            {neverBought ? '관망...' : profitRate > 0 ? '승리!' : profitRate === 0 ? '본전' : '패배...'}
+          </span>
+        </div>
+
         <div className={`result-rate ${profitClass}`}>
           {profitSign}{profitRate.toFixed(1)}%
         </div>
+
+        <div className="result-pnl">
+          <span className="result-pnl-label">최종 잔액</span>
+          <span className={`result-pnl-amount ${profitClass}`}>
+            {finalBalance.toLocaleString()}P ({pnlSign}{pnl.toLocaleString()}P)
+          </span>
+        </div>
+
         <div className="result-meme">"{memeRef.current}"</div>
         <div className="result-divider" />
+
         <div className="result-tier">
-          {tierInfo.emoji} {tierInfo.label}
+          {tierInfo.mark} {tierInfo.label}
         </div>
+
         <div className="result-meta">
           <span>종목: {state.character?.name}</span>
           <span>패턴: {state.scenario?.nameKo}</span>
         </div>
 
-        {/* 랭킹 표시 */}
-        {submitting && (
-          <div className="result-rank-loading">순위 계산 중...</div>
-        )}
+        {submitting && <div className="result-loading">순위 집계 중...</div>}
         {myRank !== null && (
           <div className="result-rank" onClick={onRanking}>
-            <span className="result-rank-label">오늘의 순위</span>
+            <span>오늘의 순위</span>
             <span className="result-rank-num">#{myRank}</span>
-            <span className="result-rank-hint">랭킹 보기 &gt;</span>
+            <span className="result-rank-go">{'>'} 랭킹</span>
           </div>
         )}
       </div>
 
-      {/* 버튼들 */}
+      {/* 버튼 */}
       <div className="result-actions">
-        <button className="btn-retro btn-pixel result-share-btn" onClick={() => alert('앱인토스 SDK 연동 후 활성화')}>
-          📱 공유하기
+        <button className="btn-retro btn-pixel result-share" onClick={() => alert('앱인토스 SDK 연동 후 활성화')}>
+          SHARE
         </button>
-        <div className="result-sub-actions">
-          <button className="btn-retro btn-pixel btn-hold result-sub-btn" onClick={onRestart}>
-            🔄 다시하기
-          </button>
-          <button className="btn-retro btn-pixel btn-hold result-sub-btn" onClick={onHome}>
-            🏠 홈으로
-          </button>
+        <div className="result-sub">
+          <button className="btn-retro btn-sub result-sub-btn" onClick={onRestart}>RETRY</button>
+          <button className="btn-retro btn-sub result-sub-btn" onClick={onHome}>HOME</button>
         </div>
       </div>
 
@@ -127,82 +140,71 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: space-evenly;
-          gap: 12px;
-          padding: 24px 20px;
-        }
-        .result-char {
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-        .result-char-emoji {
-          font-size: 56px;
-          animation: float 2s ease-in-out infinite;
-          display: block;
-        }
-        .result-char-verdict {
-          font-family: var(--font-pixel);
-          font-size: 10px;
-          color: var(--gb-light);
+          justify-content: center;
+          gap: 16px;
+          padding: 20px;
         }
         .result-card {
           width: 100%;
           max-width: 320px;
-          border: 2px solid var(--gb-light);
-          border-bottom-color: var(--surface);
-          border-right-color: var(--surface);
-          padding: 20px 16px;
+          padding: 20px;
           text-align: center;
-          background: var(--surface);
           display: flex;
           flex-direction: column;
+          gap: 10px;
+        }
+        .result-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           gap: 8px;
-          box-shadow:
-            inset 0 0 15px rgba(0,0,0,0.2),
-            0 4px 0 rgba(0,0,0,0.2);
-          border-radius: 4px;
+        }
+        .result-emoji { font-size: 32px; }
+        .result-verdict {
+          font-size: 14px;
+          color: var(--text);
         }
         .result-rate {
-          font-family: var(--font-pixel);
-          font-size: 28px;
-          line-height: 1.4;
+          font-family: var(--font-en);
+          font-size: 36px;
+          line-height: 1.2;
+        }
+        .result-pnl {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .result-pnl-label {
+          font-size: 10px;
+          color: var(--muted);
+        }
+        .result-pnl-amount {
+          font-family: var(--font-en);
+          font-size: 13px;
         }
         .result-meme {
-          font-family: var(--font-pixel);
-          font-size: 8px;
-          color: var(--gb-lightest);
-          line-height: 1.8;
-          opacity: 0.8;
+          font-size: 12px;
+          color: var(--text-sub);
         }
         .result-divider {
           width: 60%;
           height: 1px;
-          background: var(--muted);
+          background: var(--border);
           margin: 2px auto;
-          opacity: 0.4;
         }
         .result-tier {
-          font-family: var(--font-pixel);
-          font-size: 10px;
+          font-size: 14px;
           color: var(--accent);
-          text-shadow: 0 0 6px rgba(255,215,0,0.4);
         }
         .result-meta {
-          font-family: var(--font-pixel);
-          font-size: 7px;
+          font-size: 11px;
           color: var(--muted);
           display: flex;
           justify-content: center;
-          gap: 12px;
+          gap: 14px;
         }
-
-        /* 랭킹 표시 */
-        .result-rank-loading {
-          font-family: var(--font-pixel);
-          font-size: 7px;
+        .result-loading {
+          font-size: 10px;
           color: var(--muted);
           animation: blink 1s infinite;
         }
@@ -210,36 +212,26 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          padding: 8px 12px;
-          margin-top: 4px;
-          background: rgba(255,207,64,0.08);
-          border: 1px solid rgba(255,207,64,0.2);
+          gap: 10px;
+          padding: 8px 14px;
+          background: rgba(243,156,18,0.08);
+          border: 1px solid rgba(243,156,18,0.2);
           border-radius: 4px;
           cursor: pointer;
-          transition: background 0.2s;
+          font-size: 11px;
+          color: var(--text-sub);
         }
-        .result-rank:active {
-          background: rgba(255,207,64,0.15);
-        }
-        .result-rank-label {
-          font-family: var(--font-pixel);
-          font-size: 7px;
-          color: var(--gb-lightest);
-        }
+        .result-rank:active { background: rgba(243,156,18,0.15); }
         .result-rank-num {
-          font-family: var(--font-pixel);
-          font-size: 16px;
+          font-family: var(--font-en);
+          font-size: 18px;
           color: var(--accent);
-          text-shadow: 0 0 8px rgba(255,207,64,0.5);
-          animation: pulseGlow 2s infinite;
         }
-        .result-rank-hint {
-          font-family: var(--font-pixel);
-          font-size: 6px;
+        .result-rank-go {
+          font-family: var(--font-en);
+          font-size: 9px;
           color: var(--muted);
         }
-
         .result-actions {
           width: 100%;
           max-width: 320px;
@@ -247,20 +239,24 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           flex-direction: column;
           gap: 8px;
         }
-        .result-share-btn {
+        .result-share {
           width: 100%;
           height: 48px;
-          font-size: 11px;
+          font-family: var(--font-en);
+          font-size: 14px;
+          letter-spacing: 2px;
         }
-        .result-sub-actions {
+        .result-sub {
           display: flex;
           gap: 8px;
         }
         .result-sub-btn {
           flex: 1;
-          height: 40px;
-          font-size: 9px;
-          padding: 8px;
+          height: 42px;
+          font-family: var(--font-en);
+          font-size: 11px;
+          border-radius: 4px;
+          border: 2px solid;
         }
       `}</style>
     </div>

@@ -60,7 +60,6 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
 
         {!loading && !error && entries.length === 0 && (
           <div className="ranking-status">
-            <span className="ranking-empty-emoji">📊</span>
             <span className="ranking-empty">아직 기록이 없습니다</span>
             <span className="ranking-empty-sub">첫 번째 기록을 남겨보세요!</span>
           </div>
@@ -70,18 +69,15 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           const isMe = entry.user_id === myUserId;
           const profitClass = entry.profit_rate >= 0 ? 'profit-positive' : 'profit-negative';
           const profitSign = entry.profit_rate >= 0 ? '+' : '';
-          const rankEmoji = entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : '';
+          const rankMark = entry.rank === 1 ? '1st' : entry.rank === 2 ? '2nd' : entry.rank === 3 ? '3rd' : '';
 
           return (
             <div
               key={entry.id}
               className={`ranking-row ${isMe ? 'ranking-row-me' : ''}`}
             >
-              <div className="ranking-rank">
-                {rankEmoji || `#${entry.rank}`}
-              </div>
-              <div className="ranking-char-emoji">
-                {charEmoji[entry.character_id] ?? '?'}
+              <div className={`ranking-rank ${entry.rank! <= 3 ? 'ranking-top3' : ''}`}>
+                {rankMark || `#${entry.rank}`}
               </div>
               <div className="ranking-nick">
                 {entry.nickname}
@@ -113,10 +109,10 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           width: 36px;
           height: 36px;
           font-size: 14px;
-          color: var(--gb-lightest);
+          color: var(--text);
           background: var(--surface);
-          border: 2px solid var(--gb-dark);
-          border-radius: 4px;
+          border: 2px solid var(--border);
+          border-radius: 2px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -126,14 +122,12 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           text-align: center;
         }
         .ranking-title {
-          font-family: var(--font-pixel);
-          font-size: 14px;
+          font-size: 16px;
           color: var(--accent);
-          text-shadow: 0 0 8px rgba(255,207,64,0.4);
         }
         .ranking-date {
-          font-family: var(--font-pixel);
-          font-size: 7px;
+          font-family: var(--font-en);
+          font-size: 10px;
           color: var(--muted);
           margin-top: 4px;
         }
@@ -170,33 +164,24 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           gap: 8px;
         }
         .ranking-loading {
-          font-family: var(--font-pixel);
-          font-size: 9px;
-          color: var(--gb-lightest);
+          font-size: 12px;
+          color: var(--text);
           animation: blink 1s infinite;
         }
         .ranking-error {
-          font-family: var(--font-pixel);
-          font-size: 8px;
+          font-size: 12px;
           color: var(--loss);
         }
         .ranking-error-sub {
-          font-family: var(--font-pixel);
-          font-size: 6px;
+          font-size: 10px;
           color: var(--muted);
         }
-        .ranking-empty-emoji {
-          font-size: 40px;
-          display: block;
-        }
         .ranking-empty {
-          font-family: var(--font-pixel);
-          font-size: 9px;
-          color: var(--gb-lightest);
+          font-size: 12px;
+          color: var(--text);
         }
         .ranking-empty-sub {
-          font-family: var(--font-pixel);
-          font-size: 7px;
+          font-size: 10px;
           color: var(--muted);
         }
 
@@ -216,19 +201,18 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           box-shadow: 0 0 6px rgba(255,207,64,0.15);
         }
         .ranking-rank {
-          font-family: var(--font-pixel);
-          font-size: 9px;
-          color: var(--gb-lightest);
-          min-width: 28px;
+          font-family: var(--font-en);
+          font-size: 10px;
+          color: var(--text-sub);
+          min-width: 32px;
           text-align: center;
         }
-        .ranking-char-emoji {
-          font-size: 18px;
+        .ranking-top3 {
+          color: var(--accent);
         }
         .ranking-nick {
-          font-family: var(--font-pixel);
-          font-size: 7px;
-          color: var(--gb-lightest);
+          font-size: 11px;
+          color: var(--text);
           flex: 1;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -238,8 +222,9 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           gap: 4px;
         }
         .ranking-me-badge {
-          font-size: 6px;
-          color: var(--gb-darkest);
+          font-family: var(--font-en);
+          font-size: 8px;
+          color: var(--bg);
           background: var(--accent);
           padding: 1px 4px;
           border-radius: 2px;
@@ -247,8 +232,8 @@ export function RankingScreen({ onBack }: RankingScreenProps) {
           flex-shrink: 0;
         }
         .ranking-profit {
-          font-family: var(--font-pixel);
-          font-size: 9px;
+          font-family: var(--font-en);
+          font-size: 11px;
           min-width: 60px;
           text-align: right;
           flex-shrink: 0;

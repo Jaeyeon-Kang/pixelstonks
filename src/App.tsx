@@ -5,6 +5,8 @@ import { MatchingScreen } from './components/MatchingScreen';
 import { PlayScreen } from './components/PlayScreen';
 import { ResultScreen } from './components/ResultScreen';
 import { RankingScreen } from './components/RankingScreen';
+import { NicknameModal } from './components/NicknameModal';
+import { loadNickname } from './utils/nickname';
 
 function loadStats(): { bestScore: number | null; totalGames: number } {
   try {
@@ -22,9 +24,35 @@ export default function App() {
   const { state, startGame, executeTrade, goHome } = useGameLoop();
   const [stats, setStats] = useState(loadStats);
   const [showRanking, setShowRanking] = useState(false);
+  const [showNickModal, setShowNickModal] = useState(false);
+  const [nickname, setNickname] = useState<string | null>(loadNickname);
 
   const openRanking = useCallback(() => setShowRanking(true), []);
   const closeRanking = useCallback(() => setShowRanking(false), []);
+
+  // START 클릭 → 닉네임 없으면 모달, 있으면 바로 게임
+  const handleStart = useCallback(() => {
+    if (!nickname) {
+      setShowNickModal(true);
+    } else {
+      startGame();
+    }
+  }, [nickname, startGame]);
+
+  // 닉네임 확인 후 게임 시작
+  const handleNicknameConfirm = useCallback((nick: string) => {
+    setNickname(nick);
+    setShowNickModal(false);
+    startGame();
+  }, [startGame]);
+
+  // 닉네임 변경 (홈에서 터치)
+  const [nickEditMode, setNickEditMode] = useState(false);
+  const handleChangeNick = useCallback(() => setNickEditMode(true), []);
+  const handleNickEditConfirm = useCallback((nick: string) => {
+    setNickname(nick);
+    setNickEditMode(false);
+  }, []);
 
   useEffect(() => {
     if (state.phase === 'RESULT' && state.finalProfitRate !== null) {
@@ -57,10 +85,12 @@ export default function App() {
             <>
               {state.phase === 'HOME' && (
                 <HomeScreen
-                  onStart={startGame}
+                  onStart={handleStart}
                   onRanking={openRanking}
                   bestScore={stats.bestScore}
                   totalGames={stats.totalGames}
+                  nickname={nickname}
+                  onChangeNick={handleChangeNick}
                 />
               )}
               {state.phase === 'MATCHING' && state.character && (
@@ -72,7 +102,7 @@ export default function App() {
               {state.phase === 'RESULT' && (
                 <ResultScreen
                   state={state}
-                  onRestart={startGame}
+                  onRestart={handleStart}
                   onHome={goHome}
                   onRanking={openRanking}
                 />
@@ -81,10 +111,13 @@ export default function App() {
           )}
         </div>
 
-        {/* 법적 고지 */}
-        <div className="disclaimer">
-          오락 목적 시뮬레이션 · 실제 금융상품과 무관
-        </div>
+        {/* 닉네임 입력 모달 */}
+        {showNickModal && (
+          <NicknameModal onConfirm={handleNicknameConfirm} />
+        )}
+        {nickEditMode && (
+          <NicknameModal onConfirm={handleNickEditConfirm} />
+        )}
       </div>
 
       <style>{`
@@ -94,34 +127,21 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #000;
+          background: var(--bg-deep);
         }
         .game-frame {
           width: 390px;
           height: 100vh;
           max-width: 100vw;
-          background: var(--gb-darkest);
-          color: var(--gb-light);
+          background: var(--bg);
+          color: var(--text);
           overflow: hidden;
           position: relative;
-          border: 1px solid var(--gb-dark);
-          box-shadow: 0 0 30px rgba(42, 46, 63, 0.4);
         }
         .screen-container {
           position: absolute;
           inset: 0;
           z-index: 1;
-        }
-        .disclaimer {
-          position: absolute;
-          bottom: 6px;
-          left: 0;
-          right: 0;
-          text-align: center;
-          font-family: var(--font-pixel);
-          font-size: 6px;
-          color: var(--muted);
-          z-index: 20;
         }
       `}</style>
     </div>

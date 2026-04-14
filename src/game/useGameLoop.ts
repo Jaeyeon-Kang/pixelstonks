@@ -40,10 +40,10 @@ export function useGameLoop() {
       candles: [],
     });
 
-    // 매칭 연출 3초 후 플레이 시작
+    // 매칭 연출 4.5초 후 플레이 시작 (슬롯 ~2초 + 결과 ~2.5초)
     setTimeout(() => {
       setState((prev) => ({ ...prev, phase: 'PLAYING', currentTick: -1 }));
-    }, 3000);
+    }, 4500);
   }, []);
 
   // 플레이 진입 시 1초 타이머 시작
@@ -107,12 +107,15 @@ export function useGameLoop() {
     setState((prev) => {
       if (prev.phase !== 'PLAYING') return prev;
 
-      // HOLD는 매매권 소모 안 함
-      if (action === 'HOLD') return prev;
+      // HOLD: 매매권 소모 (의도적으로 관망하는 전략적 선택)
+      if (action === 'HOLD') {
+        if (prev.tradesLeft <= 0) return prev;
+        return { ...prev, tradesLeft: prev.tradesLeft - 1 };
+      }
 
-      if (prev.tradesLeft <= 0) return prev;
-
+      // BUY: 매매권 소모
       if (action === 'BUY' && prev.position === 'NONE') {
+        if (prev.tradesLeft <= 0) return prev;
         return {
           ...prev,
           position: 'HOLDING' as Position,
@@ -121,15 +124,14 @@ export function useGameLoop() {
         };
       }
 
+      // SELL: 매매권 소모 안 함 (보유 중이면 항상 매도 가능)
       if (action === 'SELL' && prev.position === 'HOLDING') {
-        // 매도 시 수익률 확정 (이후 관망)
         const profitRate = prev.entryPrice
           ? ((prev.currentPrice - prev.entryPrice) / prev.entryPrice) * 100
           : 0;
         return {
           ...prev,
           position: 'NONE' as Position,
-          tradesLeft: prev.tradesLeft - 1,
           profitRate,
         };
       }

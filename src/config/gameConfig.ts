@@ -7,15 +7,15 @@ export const GAME_CONFIG: GameConfig = {
   adIntervalGames: Number(import.meta.env.VITE_AD_INTERVAL_GAMES ?? 3),
 };
 
-// 모던 레트로 팔레트 (남색 베이스 + 소프트 그린 포인트)
+// 라이트 레트로 팔레트 (따뜻한 크림 베이스)
 export const PALETTE = {
-  bgPrimary: '#1a1c2c',     // 배경: 짙은 남색
-  bgSecondary: '#2a2e3f',   // 보조 배경
-  surface: '#252840',       // 카드/패널
-  fgPrimary: '#a8c256',     // 포인트: 부드러운 연두
-  fgSecondary: '#d4e8b0',   // 강조 텍스트
-  muted: '#5a6078',         // 비활성 텍스트
-  profit: '#5bb5f5',        // 수익 = 부드러운 파랑
-  loss: '#f06868',          // 손실 = 부드러운 빨강
-  accent: '#ffcf40',        // 골드
+  bgPrimary: '#faf8f4',     // 차트 배경: 밝은 크림
+  bgSecondary: '#f0ebe3',   // 보조 배경
+  surface: '#ffffff',       // 카드/패널
+  fgPrimary: '#1a1a2e',     // 주요 텍스트
+  fgSecondary: '#9a9ab0',   // 보조 텍스트 / 진입가 라벨
+  muted: '#ccc8c0',         // 비활성 / 그리드
+  profit: '#1a6bce',        // 수익 = 파랑
+  loss: '#d63031',          // 손실 = 빨강
+  accent: '#e67e22',        // 포인트 주황
 } as const;

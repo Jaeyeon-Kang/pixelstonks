@@ -1,17 +1,25 @@
 @import '@fontsource/press-start-2p';
+@import 'galmuri/dist/galmuri.css';
 
 :root {
-  /* 모던 레트로 팔레트: 어두운 남색 베이스 + 소프트 그린 포인트 */
-  --gb-darkest: #1a1c2c;     /* 배경: 짙은 남색 (눈 편함) */
-  --gb-dark: #2a2e3f;        /* 보조 배경: 약간 밝은 남색 */
-  --gb-light: #a8c256;       /* 포인트: 부드러운 연두 */
-  --gb-lightest: #d4e8b0;    /* 강조 텍스트: 밝은 크림 그린 */
-  --muted: #5a6078;          /* 비활성 텍스트: 회색빛 */
-  --surface: #252840;        /* 카드/패널 배경 */
-  --profit: #5bb5f5;         /* 수익: 부드러운 파랑 */
-  --loss: #f06868;           /* 손실: 부드러운 빨강 */
-  --accent: #ffcf40;         /* 골드: 왕관/레어 */
-  --font-pixel: 'Press Start 2P', monospace;
+  /* ===== 라이트 레트로 팔레트 ===== */
+  --bg: #f0ebe3;             /* 따뜻한 크림 배경 */
+  --bg-deep: #e4ded4;        /* 약간 어두운 크림 */
+  --surface: #ffffff;         /* 카드/패널 */
+  --text: #1a1a2e;            /* 진한 텍스트 */
+  --text-sub: #5a5a72;        /* 보조 텍스트 */
+  --muted: #9a9ab0;           /* 비활성 */
+  --border: #ccc8c0;          /* 테두리 */
+  --profit: #1a6bce;          /* 수익 파랑 */
+  --loss: #d63031;            /* 손실 빨강 */
+  --accent: #e67e22;          /* 포인트 주황 */
+  --gold: #f39c12;            /* 골드 */
+  --green: #27ae60;           /* 버튼 초록 */
+
+  /* 폰트 */
+  --font-kr: 'Galmuri11', sans-serif;
+  --font-en: 'Press Start 2P', monospace;
+  --font: var(--font-kr);
 }
 
 * {
@@ -27,8 +35,8 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #000;
-  font-family: var(--font-pixel);
+  background: #d8d2c8;
+  font-family: var(--font);
 }
 
 canvas {
@@ -36,73 +44,83 @@ canvas {
   image-rendering: crisp-edges;
 }
 
-/* === 레트로 버튼 공통 === */
+/* === 버튼 === */
 .btn-retro {
-  font-family: var(--font-pixel);
+  font-family: var(--font);
   border: none;
   cursor: pointer;
-  position: relative;
-  transition: transform 0.08s;
-  image-rendering: pixelated;
 }
 .btn-retro:active {
-  transform: scale(0.93) translateY(2px);
+  transform: translateY(2px);
 }
 .btn-retro:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
   transform: none;
 }
 
-/* 3D 눌림 효과 */
 .btn-pixel {
   padding: 12px 24px;
-  font-size: 11px;
-  color: var(--gb-darkest);
-  background: var(--gb-light);
-  border: 3px solid var(--gb-lightest);
-  border-bottom-color: var(--gb-dark);
-  border-right-color: var(--gb-dark);
-  box-shadow:
-    inset 1px 1px 0 var(--gb-lightest),
-    inset -1px -1px 0 var(--gb-dark),
-    3px 3px 0 rgba(0,0,0,0.3);
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
+  font-size: 14px;
+  color: #fff;
+  background: var(--green);
+  border: 2px solid #2ecc71;
+  border-bottom-color: #1a8a48;
+  border-right-color: #1a8a48;
+  box-shadow: 0 3px 0 #16703c;
+  border-radius: 4px;
 }
 .btn-pixel:active {
-  box-shadow:
-    inset -1px -1px 0 var(--gb-lightest),
-    inset 1px 1px 0 var(--gb-dark),
-    1px 1px 0 rgba(0,0,0,0.3);
+  box-shadow: 0 1px 0 #16703c;
 }
 
 .btn-buy {
-  background: #3d7ec7;
-  border-color: #5da0e8;
-  border-bottom-color: #264f7a;
-  border-right-color: #264f7a;
-  color: #fff;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+  background: var(--profit);
+  border-color: #4a90e2;
+  border-bottom-color: #0f4c8a;
+  border-right-color: #0f4c8a;
+  box-shadow: 0 3px 0 #0a3660;
 }
+.btn-buy:active { box-shadow: 0 1px 0 #0a3660; }
 
 .btn-sell {
-  background: #c75050;
-  border-color: #e07070;
-  border-bottom-color: #7a2626;
-  border-right-color: #7a2626;
-  color: #fff;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+  background: var(--loss);
+  border-color: #e74c3c;
+  border-bottom-color: #962222;
+  border-right-color: #962222;
+  box-shadow: 0 3px 0 #701a1a;
 }
+.btn-sell:active { box-shadow: 0 1px 0 #701a1a; }
 
 .btn-hold {
+  background: var(--bg-deep);
+  border-color: var(--border);
+  border-bottom-color: #b0aca4;
+  border-right-color: #b0aca4;
+  color: var(--text-sub);
+  box-shadow: 0 3px 0 #a09c94;
+}
+.btn-hold:active { box-shadow: 0 1px 0 #a09c94; }
+
+.btn-sub {
   background: var(--surface);
-  border-color: #3a3e58;
-  border-bottom-color: #15172a;
-  border-right-color: #15172a;
-  color: var(--muted);
+  border-color: var(--border);
+  border-bottom-color: #b0aca4;
+  border-right-color: #b0aca4;
+  color: var(--text);
+  box-shadow: 0 3px 0 #a09c94;
+}
+.btn-sub:active { box-shadow: 0 1px 0 #a09c94; }
+
+/* === 패널 === */
+.pixel-panel {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* === CRT 스캔라인 오버레이 (은은하게) === */
+/* === CRT (라이트 모드: 거의 안 보이게) === */
 .scanlines {
   pointer-events: none;
   position: absolute;
@@ -110,14 +128,12 @@ canvas {
   z-index: 10;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.06) 0px,
-    rgba(0, 0, 0, 0.06) 1px,
+    rgba(0, 0, 0, 0.012) 0px,
+    rgba(0, 0, 0, 0.012) 1px,
     transparent 1px,
-    transparent 4px
+    transparent 3px
   );
 }
-
-/* === CRT 비네트 (살짝만) === */
 .vignette {
   pointer-events: none;
   position: absolute;
@@ -125,34 +141,28 @@ canvas {
   z-index: 11;
   background: radial-gradient(
     ellipse at center,
-    transparent 65%,
-    rgba(0, 0, 0, 0.25) 100%
+    transparent 80%,
+    rgba(0, 0, 0, 0.06) 100%
   );
 }
 
-/* === 화면 전환 애니메이션 === */
+/* === 애니메이션 === */
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .screen-enter {
-  animation: fadeSlideIn 0.35s ease-out;
+  animation: fadeSlideIn 0.3s ease-out;
 }
 
 @keyframes pulseGlow {
-  0%, 100% { text-shadow: 0 0 8px var(--gb-light), 0 0 16px var(--gb-dark); }
-  50% { text-shadow: 0 0 16px var(--gb-lightest), 0 0 32px var(--gb-light); }
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-4px); }
 }
 
 @keyframes blink {
@@ -162,23 +172,16 @@ canvas {
 
 /* === 타이머 === */
 .timer-text {
-  font-family: var(--font-pixel);
-  font-size: 28px;
-  color: var(--gb-lightest);
-  text-shadow: 0 0 8px var(--gb-light), 2px 2px 0 rgba(0,0,0,0.5);
+  font-family: var(--font-en);
+  font-size: 24px;
+  color: var(--text);
+  text-align: center;
 }
 .timer-urgent {
   color: var(--loss);
-  animation: blink 0.5s infinite;
-  text-shadow: 0 0 8px var(--loss);
+  animation: blink 0.5s steps(2) infinite;
 }
 
-/* === 수익률 텍스트 === */
-.profit-positive {
-  color: var(--profit);
-  text-shadow: 0 0 6px rgba(91, 181, 245, 0.4);
-}
-.profit-negative {
-  color: var(--loss);
-  text-shadow: 0 0 6px rgba(240, 104, 104, 0.4);
-}
+/* === 수익률 === */
+.profit-positive { color: var(--profit); }
+.profit-negative { color: var(--loss); }

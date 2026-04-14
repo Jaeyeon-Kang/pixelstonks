@@ -1,40 +1,42 @@
 import type { Character } from '../types';
 
+// 패러디 티커 (아는 사람은 피식 웃는 수준)
+// 실제 종목명 사용 불가 (앱인토스 검수) → GTA식 패러디
 export const CHARACTERS: Character[] = [
   {
-    id: 'ttukssang',
-    name: '떡상이 🚀',
-    emoji: '🚀',
+    id: 'samsong',
+    name: '삼송전기',
+    emoji: '📱',
     spawnRate: 0.25,
-    scenarioWeightOverrides: [2, 4, 9],  // 우상향, 떡상후폭락, 상한가
+    scenarioWeightOverrides: [5, 7, 6],  // V자반등, 계단상승, 쌍바닥
   },
   {
-    id: 'gaemi',
-    name: '개미장군 🐜',
-    emoji: '🐜',
+    id: 'teslur',
+    name: '테슬러모터스',
+    emoji: '🚗',
     spawnRate: 0.25,
-    scenarioWeightOverrides: [10, 4],    // 단절, 떡상후폭락
+    scenarioWeightOverrides: [2, 9, 7],  // 우상향, 상한가, 계단상승
   },
   {
-    id: 'jonber',
-    name: '존버러스 🪨',
-    emoji: '🪨',
+    id: 'gemstop',
+    name: '겜스톱',
+    emoji: '🕹️',
     spawnRate: 0.20,
-    scenarioWeightOverrides: [1, 7],     // 잔잔한호수, 계단상승
+    scenarioWeightOverrides: [4, 8, 10], // 떡상후폭락, 롤러코스터, 절벽
   },
   {
-    id: 'buffett',
-    name: '버핏햄찌 🐹',
-    emoji: '🐹',
+    id: 'lunacoing',
+    name: '루나코잉',
+    emoji: '🪙',
     spawnRate: 0.20,
-    scenarioWeightOverrides: [1, 7, 6],  // 잔잔한호수, 계단상승, 쌍바닥
+    scenarioWeightOverrides: [3, 10, 8], // 우하향지옥, 절벽, 롤러코스터
   },
   {
-    id: 'panic',
-    name: '패닉이 😱',
-    emoji: '😱',
+    id: 'envidio',
+    name: '엔비디오',
+    emoji: '🖥️',
     spawnRate: 0.10,
-    scenarioWeightOverrides: [8, 5, 10], // 롤러코스터, V자반등, 단절
+    scenarioWeightOverrides: [7, 2, 9],  // 계단상승, 우상향, 상한가
   },
 ];
 

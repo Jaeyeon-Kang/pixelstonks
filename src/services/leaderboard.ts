@@ -14,7 +14,7 @@ export async function submitScore(
   }
 
   const userId = getUserId();
-  const nickname = loadNickname();
+  const nickname = loadNickname() ?? '익명';
 
   try {
     // 점수 INSERT
