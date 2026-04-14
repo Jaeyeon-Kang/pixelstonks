@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import 'galmuri/dist/galmuri.css'
+import 'galmuri'
 import './index.css'
 import App from './App.tsx'
 
