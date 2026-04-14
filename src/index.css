@@ -1,5 +1,20 @@
 @import '@fontsource/press-start-2p';
 
+@font-face {
+  font-family: Galmuri11;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Galmuri11.woff2') format('woff2');
+}
+@font-face {
+  font-family: Galmuri11;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Galmuri11-Bold.woff2') format('woff2');
+}
+
 :root {
   /* ===== 라이트 레트로 팔레트 ===== */
   --bg: #f0ebe3;             /* 따뜻한 크림 배경 */
