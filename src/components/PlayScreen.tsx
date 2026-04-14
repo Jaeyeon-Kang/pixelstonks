@@ -47,7 +47,6 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
   const canBuy = state.position === 'NONE' && state.tradesLeft > 0;
   const canSell = state.position === 'HOLDING';
   const profitSign = state.profitRate >= 0 ? '+' : '';
-  const profitClass = state.profitRate >= 0 ? 'profit-positive' : 'profit-negative';
   const isUrgent = state.timeLeft <= 5;
 
   // 잔액 계산

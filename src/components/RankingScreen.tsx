@@ -2,15 +2,9 @@ import { useEffect, useState } from 'react';
 import type { LeaderboardEntry } from '../types';
 import { fetchDailyTop100 } from '../services/leaderboard';
 import { getUserId } from '../utils/userId';
-import { CHARACTERS } from '../config/characters';
-
 interface RankingScreenProps {
   onBack: () => void;
 }
-
-const charEmoji: Record<string, string> = Object.fromEntries(
-  CHARACTERS.map((c) => [c.id, c.emoji]),
-);
 
 export function RankingScreen({ onBack }: RankingScreenProps) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);

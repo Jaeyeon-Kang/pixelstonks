@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Candle, Character, GameState, Position, Scenario } from '../types';
+import type { Candle, GameState, Position } from '../types';
 import { GAME_CONFIG } from '../config/gameConfig';
 import { generateAllCandles, pickScenario } from '../engine/chartEngine';
 import { pickCharacter } from '../config/characters';
