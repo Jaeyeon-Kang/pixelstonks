@@ -6,35 +6,35 @@ export const CHARACTERS: Character[] = [
   {
     id: 'samsong',
     name: '삼송전기',
-    emoji: '📱',
+    sprite: '/sprites/samsong.svg',
     spawnRate: 0.25,
     scenarioWeightOverrides: [5, 7, 6],  // V자반등, 계단상승, 쌍바닥
   },
   {
     id: 'teslur',
     name: '테슬러모터스',
-    emoji: '🚗',
+    sprite: '/sprites/teslur.svg',
     spawnRate: 0.25,
     scenarioWeightOverrides: [2, 9, 7],  // 우상향, 상한가, 계단상승
   },
   {
     id: 'gemstop',
     name: '겜스톱',
-    emoji: '🕹️',
+    sprite: '/sprites/gemstop.svg',
     spawnRate: 0.20,
     scenarioWeightOverrides: [4, 8, 10], // 떡상후폭락, 롤러코스터, 절벽
   },
   {
     id: 'lunacoing',
     name: '루나코잉',
-    emoji: '🪙',
+    sprite: '/sprites/lunacoing.svg',
     spawnRate: 0.20,
     scenarioWeightOverrides: [3, 10, 8], // 우하향지옥, 절벽, 롤러코스터
   },
   {
     id: 'envidio',
     name: '엔비디오',
-    emoji: '🖥️',
+    sprite: '/sprites/envidio.svg',
     spawnRate: 0.10,
     scenarioWeightOverrides: [7, 2, 9],  // 계단상승, 우상향, 상한가
   },

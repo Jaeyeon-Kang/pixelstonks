@@ -25,19 +25,19 @@ function getTier(profitRate: number): ProfitTier {
   return 'hell';
 }
 
-const TIER_INFO: Record<ProfitTier, { label: string; mark: string }> = {
-  god:    { label: '버그 아님?', mark: '👑' },
-  legend: { label: '전설의 단타왕', mark: '★★★' },
-  pro:    { label: '프로 개미', mark: '★★☆' },
-  beast:  { label: '야수의 심장', mark: '★★' },
-  good:   { label: '쏠쏠한 수익', mark: '★' },
-  okay:   { label: '용돈 벌이', mark: '☆' },
-  meh:    { label: '본전치기', mark: '-' },
-  sad:    { label: '개미의 눈물', mark: '▼' },
-  cry:    { label: '물린 개미', mark: '▼▼' },
-  dead:   { label: '깡통계좌', mark: '▼▼▼' },
-  doom:   { label: '반대매매', mark: '💀' },
-  hell:   { label: '상장폐지', mark: '🔥' },
+const TIER_INFO: Record<ProfitTier, { label: string; sprite: string }> = {
+  god:    { label: '버그 아님?', sprite: '/sprites/tier_god.svg' },
+  legend: { label: '전설의 단타왕', sprite: '/sprites/tier_legend.svg' },
+  pro:    { label: '프로 개미', sprite: '/sprites/tier_pro.svg' },
+  beast:  { label: '야수의 심장', sprite: '/sprites/tier_beast.svg' },
+  good:   { label: '쏠쏠한 수익', sprite: '/sprites/tier_good.svg' },
+  okay:   { label: '용돈 벌이', sprite: '/sprites/tier_okay.svg' },
+  meh:    { label: '본전치기', sprite: '/sprites/tier_meh.svg' },
+  sad:    { label: '개미의 눈물', sprite: '/sprites/tier_sad.svg' },
+  cry:    { label: '물린 개미', sprite: '/sprites/tier_cry.svg' },
+  dead:   { label: '깡통계좌', sprite: '/sprites/tier_dead.svg' },
+  doom:   { label: '반대매매', sprite: '/sprites/tier_doom.svg' },
+  hell:   { label: '상장폐지', sprite: '/sprites/tier_hell.svg' },
 };
 
 const MEME_POOL: Record<ProfitTier, string[]> = {
@@ -157,7 +157,7 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
   // 한 번도 매수하지 않았는지 체크 (매매권 3개 그대로)
   const neverBought = state.tradesLeft === GAME_CONFIG.maxTrades;
   const tier = neverBought ? 'meh' as ProfitTier : getTier(profitRate);
-  const tierInfo = neverBought ? { label: '구경만 함', mark: '👀' } : TIER_INFO[tier];
+  const tierInfo = neverBought ? { label: '구경만 함', sprite: '/sprites/tier_idle.svg' } : TIER_INFO[tier];
   const memeRef = useRef(neverBought ? pickRandom(IDLE_MEMES) : pickRandom(MEME_POOL[tier]));
   const profitClass = profitRate >= 0 ? 'profit-positive' : 'profit-negative';
   const profitSign = profitRate >= 0 ? '+' : '';
@@ -185,7 +185,7 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
       {/* 결과 카드 */}
       <div className="result-card pixel-panel">
         <div className="result-header">
-          <span className="result-emoji">{state.character?.emoji}</span>
+          <img src={state.character?.sprite} alt={state.character?.name} className="result-char-sprite" draggable={false} />
           <span className="result-verdict">
             {neverBought ? '관망...' : profitRate > 0 ? '승리!' : profitRate === 0 ? '본전' : '패배...'}
           </span>
@@ -206,7 +206,8 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
         <div className="result-divider" />
 
         <div className="result-tier">
-          {tierInfo.mark} {tierInfo.label}
+          <img src={tierInfo.sprite} alt={tierInfo.label} className="result-tier-sprite" draggable={false} />
+          <span>{tierInfo.label}</span>
         </div>
 
         <div className="result-meta">
@@ -260,7 +261,11 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           justify-content: center;
           gap: 8px;
         }
-        .result-emoji { font-size: 32px; }
+        .result-char-sprite {
+          width: 40px;
+          height: 40px;
+          image-rendering: pixelated;
+        }
         .result-verdict {
           font-size: 14px;
           color: var(--text);
@@ -294,8 +299,17 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           margin: 2px auto;
         }
         .result-tier {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
           font-size: 14px;
           color: var(--accent);
+        }
+        .result-tier-sprite {
+          width: 28px;
+          height: 28px;
+          image-rendering: pixelated;
         }
         .result-meta {
           font-size: 11px;

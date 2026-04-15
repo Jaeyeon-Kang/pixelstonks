@@ -47,8 +47,8 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
 
       <div className="matching-slot">
         <div className="matching-frame pixel-panel">
-          <div className={`matching-emoji ${phase === 'spinning' ? 'spinning' : 'bounce'}`}>
-            {displayChar.emoji}
+          <div className={`matching-sprite ${phase === 'spinning' ? 'spinning' : 'bounce'}`}>
+            <img src={displayChar.sprite} alt={displayChar.name} className="sprite-img" draggable={false} />
           </div>
         </div>
 
@@ -100,9 +100,17 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
           justify-content: center;
           border-radius: 12px;
         }
-        .matching-emoji {
-          font-size: 64px;
-          line-height: 1;
+        .matching-sprite {
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .matching-sprite .sprite-img {
+          width: 100%;
+          height: 100%;
+          image-rendering: pixelated;
         }
         .spinning {
           filter: blur(1px);

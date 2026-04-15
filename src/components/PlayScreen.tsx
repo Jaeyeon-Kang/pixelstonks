@@ -62,7 +62,7 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
       {/* 상단: 캐릭터 + 매매권 */}
       <div className="play-top">
         <div className="play-char">
-          <span className="play-char-emoji">{state.character?.emoji}</span>
+          <img src={state.character?.sprite} alt={state.character?.name} className="play-char-sprite" draggable={false} />
           <span className="play-char-name">{state.character?.name}</span>
         </div>
         <div className="play-trades">
@@ -144,7 +144,11 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           align-items: center;
           gap: 6px;
         }
-        .play-char-emoji { font-size: 20px; }
+        .play-char-sprite {
+          width: 28px;
+          height: 28px;
+          image-rendering: pixelated;
+        }
         .play-char-name {
           font-size: 12px;
           color: var(--text);

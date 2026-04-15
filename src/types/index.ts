@@ -40,7 +40,7 @@ export type CharacterId = 'samsong' | 'teslur' | 'gemstop' | 'lunacoing' | 'envi
 export interface Character {
   id: CharacterId;
   name: string;
-  emoji: string;
+  sprite: string;                       // 스프라이트 SVG 경로
   spawnRate: number;                    // 등장 확률 (0~1)
   scenarioWeightOverrides: number[];    // 가중치 ×2 적용할 시나리오 ID 목록
 }
