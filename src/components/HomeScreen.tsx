@@ -23,11 +23,11 @@ export function HomeScreen({ onStart, onRanking, bestScore, totalGames, nickname
         </div>
 
         <button className="btn-retro btn-pixel home-start" onClick={onStart}>
-          {'>'} START
+          {'>'} 시작하기
         </button>
 
         <button className="btn-retro btn-sub home-ranking" onClick={onRanking}>
-          RANKING
+          랭킹
         </button>
 
         <div className="home-stats">

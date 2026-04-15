@@ -58,7 +58,7 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
   const pnlSign = pnl >= 0 ? '+' : '';
 
   return (
-    <div className="play">
+    <div className={`play ${isUrgent ? 'play-urgent' : ''}`}>
       {/* 상단: 캐릭터 + 매매권 */}
       <div className="play-top">
         <div className="play-char">
@@ -108,20 +108,20 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
       {/* 첫 판 힌트 */}
       {showHint && (
         <div className="play-hint" onClick={() => setShowHint(false)}>
-          차트를 보고 BUY로 매수, SELL로 매도! 매매 기회 3회
+          차트를 보고 매수/매도 타이밍을 잡으세요! 매매 기회 3회
         </div>
       )}
 
       {/* 버튼 */}
       <div className="play-btns">
         <button className="btn-retro btn-buy play-btn" disabled={!canBuy} onClick={() => onTrade('BUY')}>
-          ▲ BUY
+          ▲ 매수
         </button>
         <button className="btn-retro btn-sell play-btn" disabled={!canSell} onClick={() => onTrade('SELL')}>
-          ▼ SELL
+          ▼ 매도
         </button>
         <button className="btn-retro btn-hold play-btn" disabled={state.tradesLeft <= 0} onClick={() => onTrade('HOLD')}>
-          ■ HOLD
+          ■ 관망
         </button>
       </div>
 
@@ -197,8 +197,8 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           background: var(--surface);
           animation: fadeSlideIn 0.3s ease-out;
         }
-        .ev-bullish { border-left-color: var(--profit); background: rgba(26,107,206,0.06); }
-        .ev-bearish { border-left-color: var(--loss); background: rgba(214,48,49,0.06); }
+        .ev-bullish { border-left-color: var(--profit); background: rgba(214,48,49,0.06); }
+        .ev-bearish { border-left-color: var(--loss); background: rgba(26,107,206,0.06); }
         .ev-shock { border-left-color: var(--accent); background: rgba(230,126,34,0.06); }
 
         .play-chart {
@@ -271,6 +271,19 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           cursor: not-allowed;
           transform: none !important;
           box-shadow: none !important;
+        }
+
+        /* 5초 남았을 때 긴장감 */
+        .play-urgent {
+          animation: urgentPulse 0.5s ease-in-out infinite;
+        }
+        @keyframes urgentPulse {
+          0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+          50% { box-shadow: inset 0 0 20px rgba(214,48,49,0.15); }
+        }
+        .play-urgent .timer-text {
+          font-size: 28px;
+          transform: scale(1.1);
         }
       `}</style>
     </div>

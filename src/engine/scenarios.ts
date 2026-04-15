@@ -10,8 +10,8 @@ export const SCENARIOS: Scenario[] = [
     weight: 8,
     segments: [{ state: 'BOX', duration: 30 }],
     events: [
-      { tick: 0, headline: '[시황] 특별 이슈 없음... 조용한 장세', type: 'info' },
-      { tick: 15, headline: '[시황] 거래량 부진, 관망세 지속', type: 'info' },
+      { tick: 0, headline: '[시황] 뚜렷한 재료 없이 보합 출발', type: 'info' },
+      { tick: 15, headline: '[시황] 거래량 바닥, 눈치 장세 지속', type: 'info' },
     ],
   },
   {
@@ -22,9 +22,9 @@ export const SCENARIOS: Scenario[] = [
     weight: 10,
     segments: [{ state: 'TREND_UP', duration: 30 }],
     events: [
-      { tick: 0, headline: '[속보] 기관 매수세 유입! 상승 출발', type: 'bullish' },
-      { tick: 12, headline: '[속보] 외인 동반 매수, 상승 가속', type: 'bullish' },
-      { tick: 22, headline: '[속보] 52주 신고가 돌파!', type: 'bullish' },
+      { tick: 0, headline: '[속보] 외국인·기관 동시 순매수 포착', type: 'bullish' },
+      { tick: 12, headline: '[속보] 거래대금 급증, 매수세 가속', type: 'bullish' },
+      { tick: 22, headline: '[속보] 52주 신고가 경신!', type: 'bullish' },
     ],
   },
   {
@@ -35,9 +35,9 @@ export const SCENARIOS: Scenario[] = [
     weight: 10,
     segments: [{ state: 'TREND_DOWN', duration: 30 }],
     events: [
-      { tick: 0, headline: '[속보] 악재 연발, 투매 시작', type: 'bearish' },
-      { tick: 10, headline: '[긴급] 반대매매 쏟아져...', type: 'bearish' },
-      { tick: 20, headline: '[긴급] 패닉셀! 바닥은 어디?', type: 'shock' },
+      { tick: 0, headline: '[속보] 대규모 악재 발생, 투매 출회', type: 'bearish' },
+      { tick: 10, headline: '[긴급] 신용잔고 반대매매 물량 쏟아져', type: 'bearish' },
+      { tick: 20, headline: '[긴급] 패닉셀 확산... 하한가 근접', type: 'shock' },
     ],
   },
   {
@@ -53,10 +53,10 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_DOWN', duration: 8 },
     ],
     events: [
-      { tick: 0, headline: '[시황] 보합세... 눈치 보는 중', type: 'info' },
-      { tick: 10, headline: '[속보] 거래량 폭증! 매수세 몰린다', type: 'bullish' },
-      { tick: 18, headline: '[긴급] 대주주 지분 전량 매도!', type: 'shock' },
-      { tick: 22, headline: '[속보] 투매... 개미들 탈출 중', type: 'bearish' },
+      { tick: 0, headline: '[시황] 거래량 감소, 방향성 탐색 중', type: 'info' },
+      { tick: 10, headline: '[속보] 수급 급변! 대량 매수 체결', type: 'bullish' },
+      { tick: 18, headline: '[긴급] 최대주주 지분 전량 장내 매도', type: 'shock' },
+      { tick: 22, headline: '[속보] 개미 투매 러시, 매도 잔량 폭증', type: 'bearish' },
     ],
   },
   {
@@ -71,10 +71,10 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_UP', duration: 13 },
     ],
     events: [
-      { tick: 0, headline: '[속보] 시장 약세, 하락 출발', type: 'bearish' },
-      { tick: 8, headline: '[긴급] 공포 확산, 매도 가속', type: 'bearish' },
-      { tick: 15, headline: '[긴급] 정부 부양책 발표!', type: 'shock' },
-      { tick: 18, headline: '[속보] V자 반등 시작!', type: 'bullish' },
+      { tick: 0, headline: '[속보] 외국인 대량 매도, 약세 출발', type: 'bearish' },
+      { tick: 8, headline: '[긴급] 공포지수 급등, 투매 확산', type: 'bearish' },
+      { tick: 15, headline: '[긴급] 정부 긴급 시장안정 대책 발표', type: 'shock' },
+      { tick: 18, headline: '[속보] 기관 저가 매수 유입, 반등 시작', type: 'bullish' },
     ],
   },
   {
@@ -90,10 +90,10 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_UP', duration: 12 },
     ],
     events: [
-      { tick: 0, headline: '[속보] 1차 하락, 지지선 테스트', type: 'bearish' },
-      { tick: 8, headline: '[시황] 반등 시도... 바닥인가?', type: 'info' },
-      { tick: 14, headline: '[속보] 2차 하락! 쌍바닥 패턴?', type: 'bearish' },
-      { tick: 18, headline: '[속보] 지지 확인! 매수세 유입', type: 'bullish' },
+      { tick: 0, headline: '[속보] 주요 지지선 이탈, 1차 하락', type: 'bearish' },
+      { tick: 8, headline: '[시황] 낙폭 과대 인식, 반등 시도', type: 'info' },
+      { tick: 14, headline: '[속보] 전저점 재차 하회, 2차 하락', type: 'bearish' },
+      { tick: 18, headline: '[속보] 쌍바닥 지지 확인, 기관 매수 유입', type: 'bullish' },
     ],
   },
   {
@@ -111,12 +111,12 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_UP', duration: 5 },
     ],
     events: [
-      { tick: 0, headline: '[시황] 1단계: 매집 구간', type: 'info' },
-      { tick: 5, headline: '[속보] 돌파! 1차 상승', type: 'bullish' },
-      { tick: 10, headline: '[시황] 조정 후 눌림목 지지', type: 'info' },
-      { tick: 15, headline: '[속보] 2차 상승! 추세 확인', type: 'bullish' },
-      { tick: 20, headline: '[시황] 3단계 눌림목...', type: 'info' },
-      { tick: 25, headline: '[속보] 3차 상승! 가속!', type: 'bullish' },
+      { tick: 0, headline: '[시황] 거래량 미미, 횡보 지속', type: 'info' },
+      { tick: 5, headline: '[속보] 저항선 돌파! 거래량 동반 상승', type: 'bullish' },
+      { tick: 10, headline: '[시황] 단기 차익 실현 매물 소화 중', type: 'info' },
+      { tick: 15, headline: '[속보] 2차 돌파, 상승 추세 확인', type: 'bullish' },
+      { tick: 20, headline: '[시황] 눌림목 지지, 매물 소화 완료', type: 'info' },
+      { tick: 25, headline: '[속보] 3차 상승 가속! 신고가 도전', type: 'bullish' },
     ],
   },
   {
@@ -127,10 +127,10 @@ export const SCENARIOS: Scenario[] = [
     weight: 8,
     segments: buildRollerCoaster(),
     events: [
-      { tick: 0, headline: '[긴급] 경고: 극심한 변동성!', type: 'shock' },
-      { tick: 8, headline: '[긴급] 롤러코스터 장세 지속!', type: 'shock' },
-      { tick: 16, headline: '[긴급] 혼돈의 카오스...', type: 'shock' },
-      { tick: 24, headline: '[긴급] 어지러워... 언제 끝나?', type: 'shock' },
+      { tick: 0, headline: '[긴급] 변동성 지수 급등, 방향 예측 불가', type: 'shock' },
+      { tick: 8, headline: '[긴급] 알고리즘 매매 폭주, 급등락 반복', type: 'shock' },
+      { tick: 16, headline: '[긴급] 매수·매도 호가 동시 소멸', type: 'shock' },
+      { tick: 24, headline: '[긴급] 서킷브레이커 검토 중...', type: 'shock' },
     ],
   },
   {
@@ -145,10 +145,10 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_UP', duration: 8 },
     ],
     events: [
-      { tick: 0, headline: '[시황] 잠잠한 횡보... 재미없다', type: 'info' },
-      { tick: 10, headline: '[시황] 거래량 최저, 지루한 장', type: 'info' },
-      { tick: 20, headline: '[긴급] 대형 호재 발표!', type: 'shock' },
-      { tick: 22, headline: '[속보] 상한가 직행!! 가즈아!', type: 'bullish' },
+      { tick: 0, headline: '[시황] 특이사항 없음, 한산한 거래', type: 'info' },
+      { tick: 10, headline: '[시황] 거래량 금일 최저 수준', type: 'info' },
+      { tick: 20, headline: '[긴급] 대규모 수주 계약 공시!', type: 'shock' },
+      { tick: 22, headline: '[속보] 매수 호가 잔량 소멸, 상한가 직행', type: 'bullish' },
     ],
   },
   {
@@ -163,10 +163,10 @@ export const SCENARIOS: Scenario[] = [
       { state: 'TREND_DOWN', duration: 18 },
     ],
     events: [
-      { tick: 0, headline: '[속보] 순항 중... 좋은 흐름', type: 'bullish' },
-      { tick: 6, headline: '[속보] 신고가 근접, 기대감 UP', type: 'bullish' },
-      { tick: 10, headline: '[긴급] 실적 쇼크 발표!', type: 'shock' },
-      { tick: 14, headline: '[속보] 절벽 하락... 탈출 불가', type: 'bearish' },
+      { tick: 0, headline: '[속보] 호실적 기대감에 매수세 유입', type: 'bullish' },
+      { tick: 6, headline: '[속보] 52주 신고가 근접, 돌파 기대', type: 'bullish' },
+      { tick: 10, headline: '[긴급] 어닝 쇼크! 영업이익 적자 전환', type: 'shock' },
+      { tick: 14, headline: '[속보] 기관·외인 동시 투매, 낙폭 확대', type: 'bearish' },
     ],
   },
 ];

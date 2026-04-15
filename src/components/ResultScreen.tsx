@@ -227,11 +227,11 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
       {/* 버튼 */}
       <div className="result-actions">
         <button className="btn-retro btn-pixel result-share" onClick={() => alert('앱인토스 SDK 연동 후 활성화')}>
-          SHARE
+          공유하기
         </button>
         <div className="result-sub">
-          <button className="btn-retro btn-sub result-sub-btn" onClick={onRestart}>RETRY</button>
-          <button className="btn-retro btn-sub result-sub-btn" onClick={onHome}>HOME</button>
+          <button className="btn-retro btn-sub result-sub-btn" onClick={onRestart}>다시하기</button>
+          <button className="btn-retro btn-sub result-sub-btn" onClick={onHome}>홈</button>
         </div>
       </div>
 
