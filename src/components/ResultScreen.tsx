@@ -11,33 +11,33 @@ interface ResultScreenProps {
 }
 
 function getTier(profitRate: number): ProfitTier {
-  if (profitRate >= 500) return 'legend';
-  if (profitRate >= 200) return 'beast';
-  if (profitRate >= 50) return 'normal';
-  if (profitRate >= -20) return 'meh';
-  if (profitRate >= -50) return 'ant';
-  if (profitRate >= -90) return 'dead';
+  if (profitRate >= 15) return 'legend';
+  if (profitRate >= 8) return 'beast';
+  if (profitRate >= 2) return 'normal';
+  if (profitRate >= -2) return 'meh';
+  if (profitRate >= -8) return 'ant';
+  if (profitRate >= -15) return 'dead';
   return 'doom';
 }
 
 const TIER_INFO: Record<ProfitTier, { label: string; mark: string }> = {
   legend: { label: '전설의 단타왕', mark: '★★★' },
   beast: { label: '야수의 심장', mark: '★★' },
-  normal: { label: '평타 이상', mark: '★' },
-  meh: { label: '그저 그럼', mark: '-' },
-  ant: { label: '개미의 삶', mark: '▼' },
+  normal: { label: '쏠쏠한 수익', mark: '★' },
+  meh: { label: '본전치기', mark: '-' },
+  ant: { label: '개미의 눈물', mark: '▼' },
   dead: { label: '깡통계좌', mark: '▼▼' },
-  doom: { label: '전설의 패배', mark: '▼▼▼' },
+  doom: { label: '전설의 손실', mark: '▼▼▼' },
 };
 
 const MEME_POOL: Record<ProfitTier, string[]> = {
-  legend: ['워렌버핏이 기립박수', '오늘의 단타왕 등극', 'Stonks!!!', '금감원에서 연락 갈지도'],
-  beast: ['야수의 심장 인증', '재능충 등판', '이쯤이면 단타 금지령', '침팬지가 예언한 그분'],
-  normal: ['평타는 쳤네 뭐', '운빨 오졌다', '예금 이자보단 나음', '나쁘지 않음 인정'],
-  meh: ['침팬지와 동일한 수익률', '차라리 적금을 해라', '가위바위보만도 못함', '시장 수익률 못 이김'],
-  ant: ['이게 바로 개미의 삶', '엄마가 보면 우심', 'not stonks...', '존버만이 살길이었는데'],
-  dead: ['가문의 수치', '다음 생엔 공무원', '반대매매 강제청산', '깡통계좌 입문'],
-  doom: ['앱 지우는 게 정신건강에 좋습니다', '워렌버핏이 쿠팡맨으로 재취업', '주식은 이제 그만...'],
+  legend: ['금감원에서 연락 올 듯', 'Stonks!!!', '오늘의 단타왕 등극', '천재 아니면 운빨'],
+  beast: ['야수의 심장 인증', '이 정도면 재능충', '단타 금지령 내려야 함', '프로 개미 인증'],
+  normal: ['예금 이자보단 나음', '치킨값은 벌었다', '나쁘지 않음 인정', '소소한 행복'],
+  meh: ['본전이면 성공이다', '수수료가 더 아까움', '차라리 적금 해라', '있으나 마나 한 수익'],
+  ant: ['개미는 오늘도 눈물', 'not stonks...', '엄마가 보면 우심', '존버가 답이었는데'],
+  dead: ['다음 생엔 공무원', '반대매매 발동', '가문의 수치', '깡통계좌 입문'],
+  doom: ['앱 삭제 추천', '주식 접으세요', '전재산 증발 체험', '다시는 안 해...'],
 };
 
 function pickRandom<T>(arr: T[]): T {

@@ -24,8 +24,8 @@
   --text-sub: #5a5a72;        /* 보조 텍스트 */
   --muted: #9a9ab0;           /* 비활성 */
   --border: #ccc8c0;          /* 테두리 */
-  --profit: #1a6bce;          /* 수익 파랑 */
-  --loss: #d63031;            /* 손실 빨강 */
+  --profit: #d63031;          /* 수익 빨강 (한국식) */
+  --loss: #1a6bce;            /* 손실 파랑 (한국식) */
   --accent: #e67e22;          /* 포인트 주황 */
   --gold: #f39c12;            /* 골드 */
   --green: #27ae60;           /* 버튼 초록 */
@@ -43,6 +43,8 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: default;
 }
 
 html, body, #root {
@@ -90,21 +92,21 @@ canvas {
 
 .btn-buy {
   background: var(--profit);
-  border-color: #4a90e2;
-  border-bottom-color: #0f4c8a;
-  border-right-color: #0f4c8a;
-  box-shadow: 0 3px 0 #0a3660;
-}
-.btn-buy:active { box-shadow: 0 1px 0 #0a3660; }
-
-.btn-sell {
-  background: var(--loss);
   border-color: #e74c3c;
   border-bottom-color: #962222;
   border-right-color: #962222;
   box-shadow: 0 3px 0 #701a1a;
 }
-.btn-sell:active { box-shadow: 0 1px 0 #701a1a; }
+.btn-buy:active { box-shadow: 0 1px 0 #701a1a; }
+
+.btn-sell {
+  background: var(--loss);
+  border-color: #4a90e2;
+  border-bottom-color: #0f4c8a;
+  border-right-color: #0f4c8a;
+  box-shadow: 0 3px 0 #0a3660;
+}
+.btn-sell:active { box-shadow: 0 1px 0 #0a3660; }
 
 .btn-hold {
   background: var(--bg-deep);

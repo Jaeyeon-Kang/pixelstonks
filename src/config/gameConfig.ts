@@ -15,7 +15,7 @@ export const PALETTE = {
   fgPrimary: '#1a1a2e',     // 주요 텍스트
   fgSecondary: '#9a9ab0',   // 보조 텍스트 / 진입가 라벨
   muted: '#ccc8c0',         // 비활성 / 그리드
-  profit: '#1a6bce',        // 수익 = 파랑
-  loss: '#d63031',          // 손실 = 빨강
+  profit: '#d63031',        // 상승 = 빨강 (한국식)
+  loss: '#1a6bce',          // 하락 = 파랑 (한국식)
   accent: '#e67e22',        // 포인트 주황
 } as const;
