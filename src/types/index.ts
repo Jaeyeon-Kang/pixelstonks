@@ -67,7 +67,7 @@ export interface GameState {
 
 // === 밈 문구 타입 ===
 
-export type ProfitTier = 'legend' | 'beast' | 'normal' | 'meh' | 'ant' | 'dead' | 'doom';
+export type ProfitTier = 'god' | 'legend' | 'pro' | 'beast' | 'good' | 'okay' | 'meh' | 'sad' | 'cry' | 'dead' | 'doom' | 'hell';
 
 // === 리더보드 타입 ===
 
