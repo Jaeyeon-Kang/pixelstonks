@@ -35,7 +35,7 @@ export interface Scenario {
 
 // === 캐릭터 타입 ===
 
-export type CharacterId = 'samsong' | 'teslur' | 'gemstop' | 'lunacoing' | 'envidio';
+export type CharacterId = 'samsong' | 'teslur' | 'gemstop' | 'lunacoing' | 'envidio' | 'kakamot' | 'hannwa' | 'crapton' | 'kupang';
 
 export interface Character {
   id: CharacterId;

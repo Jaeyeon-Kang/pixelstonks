@@ -415,8 +415,88 @@ function toSvg(pixels, size = 16) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size * 2}" height="${size * 2}" shape-rendering="crispEdges">${rects}</svg>`;
 }
 
+// 카카못 - 주황 말풍선 (카카오 패러디, 꼬리 달린 말풍선)
+const kakamot = [
+  '................',
+  '....KKKKKKKK....',
+  '...KOOOOOOOoK...',
+  '..KOOOOOOOOOoK..',
+  '..KOOWKOOWKOoK..',
+  '..KOOOOOOOOOoK..',
+  '..KOOOOOOOOOoK..',
+  '..KOOKOooOKOoK..',
+  '..KOOOOOOOOOoK..',
+  '...KOOOOOOOoK...',
+  '....KKKKKKKoK...',
+  '..........KoK...',
+  '...........KK...',
+  '................',
+  '................',
+  '................',
+];
+
+// 한놔에어 - 시안 로켓 (한화에어 패러디, 불꽃 분사)
+const hannwa = [
+  '.......KK.......',
+  '......KCCK......',
+  '.....KCCCcK.....',
+  '.....KCCCcK.....',
+  '....KCCCCCcK....',
+  '....KCWKWKcK....',
+  '....KCCCCCcK....',
+  '....KCCccCcK....',
+  '...KCCCCCCCcK...',
+  '..KKCCCCCCCcKK..',
+  '.KK.KCCCCCcK.KK.',
+  '....KCCCCCcK....',
+  '.....KKKKKcK....',
+  '.....KRRRrK.....',
+  '......KRrK......',
+  '.......KK.......',
+];
+
+// 크랩톤 - 하늘색 게이밍 모니터 (크래프톤 패러디)
+const crapton = [
+  '................',
+  '.KKKKKKKKKKKK...',
+  '.KLLLLLLLLLlK...',
+  '.KLLLLLLLLLlK...',
+  '.KLLWKLLWKLlK...',
+  '.KLLLLLLLLLlK...',
+  '.KLLLLllLLLlK...',
+  '.KLLLLLLLLLlK...',
+  '.KKKKKKKKKKKK...',
+  '......KssK......',
+  '......KssK......',
+  '...KKKKKKKKKK...',
+  '...KssssssssK...',
+  '...KKKKKKKKKK...',
+  '................',
+  '................',
+];
+
+// 쿠빵 - 실버 택배상자 (쿠팡 패러디, 주황 테이프)
+const kupang = [
+  '................',
+  '..KKKKKKKKKKKK..',
+  '..KSSSSSSSSSsK..',
+  '..KSSSSSSSSSsK..',
+  '..KSSWKSSWKSsK..',
+  '..KSSSSSSSSSsK..',
+  '..KSSSKsKSSSsK..',
+  '..KSSSSSSSSSsK..',
+  '..KKKKKKKKKKKK..',
+  '..KSSOOOOOSSsK..',
+  '..KSSOOOOOSSsK..',
+  '..KSSSSSSSSSsK..',
+  '..KKKKKKKKKKKK..',
+  '................',
+  '................',
+  '................',
+];
+
 // 종목 캐릭터
-const chars = { samsong, teslur, gemstop, lunacoing, envidio };
+const chars = { samsong, teslur, gemstop, lunacoing, envidio, kakamot, hannwa, crapton, kupang };
 for (const [name, data] of Object.entries(chars)) {
   writeFileSync(join(OUT, `${name}.svg`), toSvg(data));
   console.log(`✓ char: ${name}.svg`);
