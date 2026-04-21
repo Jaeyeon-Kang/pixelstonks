@@ -106,16 +106,14 @@ export function HomeScreen({ onStart, onRanking, bestScore, totalGames, nickname
         .home-start {
           width: 220px;
           height: 54px;
-          font-family: var(--font-en);
-          font-size: 16px;
-          letter-spacing: 4px;
+          font-size: 15px;
+          letter-spacing: 3px;
           margin-top: 8px;
         }
         .home-ranking {
           width: 180px;
           height: 40px;
-          font-family: var(--font-en);
-          font-size: 11px;
+          font-size: 12px;
           letter-spacing: 2px;
         }
         .home-stats {

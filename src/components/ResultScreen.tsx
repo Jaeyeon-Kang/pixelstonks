@@ -180,21 +180,34 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
       .finally(() => setSubmitting(false));
   }, [profitRate, state.character, state.scenario]);
 
+  // 티어별 무드 분류
+  const tierMood = (() => {
+    if (neverBought) return 'idle';
+    if (['god', 'legend', 'pro'].includes(tier)) return 'gold';
+    if (['beast', 'good'].includes(tier)) return 'win';
+    if (['okay', 'meh'].includes(tier)) return 'neutral';
+    if (['sad', 'cry'].includes(tier)) return 'lose';
+    return 'doom'; // dead, doom, hell
+  })();
+
   return (
-    <div className="result">
+    <div className={`result result-mood-${tierMood}`}>
       {/* 결과 카드 */}
-      <div className="result-card pixel-panel">
+      <div className={`result-card pixel-panel rc-${tierMood}`}>
+        {/* 상단: 캐릭터 + 판정 */}
         <div className="result-header">
           <img src={state.character?.sprite} alt={state.character?.name} className="result-char-sprite" draggable={false} />
-          <span className="result-verdict">
+          <span className={`result-verdict rv-${tierMood}`}>
             {neverBought ? '관망...' : profitRate > 0 ? '승리!' : profitRate === 0 ? '본전' : '패배...'}
           </span>
         </div>
 
-        <div className={`result-rate ${profitClass}`}>
+        {/* 수익률 */}
+        <div className={`result-rate ${profitClass} rate-anim-${profitRate > 0 ? 'win' : profitRate < 0 ? 'lose' : 'neutral'}`}>
           {profitSign}{profitRate.toFixed(1)}%
         </div>
 
+        {/* 잔액 */}
         <div className="result-pnl">
           <span className="result-pnl-label">최종 잔액</span>
           <span className={`result-pnl-amount ${profitClass}`}>
@@ -202,14 +215,20 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           </span>
         </div>
 
-        <div className="result-meme">"{memeRef.current}"</div>
-        <div className="result-divider" />
-
-        <div className="result-tier">
+        {/* 등급 아이콘 (크게!) */}
+        <div className={`result-tier-box tb-${tierMood}`}>
           <img src={tierInfo.sprite} alt={tierInfo.label} className="result-tier-sprite" draggable={false} />
-          <span>{tierInfo.label}</span>
+          <span className="result-tier-label">{tierInfo.label}</span>
         </div>
 
+        {/* 밈 말풍선 */}
+        <div className={`result-meme-bubble mb-${tierMood}`}>
+          <span className="meme-quote">"</span>
+          {memeRef.current}
+          <span className="meme-quote">"</span>
+        </div>
+
+        {/* 메타 */}
         <div className="result-meta">
           <span>종목: {state.character?.name}</span>
           <span>패턴: {state.scenario?.nameKo}</span>
@@ -227,13 +246,10 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
 
       {/* 버튼 */}
       <div className="result-actions">
-        <button className="btn-retro btn-pixel result-share" onClick={() => alert('앱인토스 SDK 연동 후 활성화')}>
-          공유하기
+        <button className="btn-retro btn-pixel result-retry" onClick={onRestart}>
+          다시하기
         </button>
-        <div className="result-sub">
-          <button className="btn-retro btn-sub result-sub-btn" onClick={onRestart}>다시하기</button>
-          <button className="btn-retro btn-sub result-sub-btn" onClick={onHome}>홈</button>
-        </div>
+        <button className="btn-retro btn-sub result-home-btn" onClick={onHome}>홈으로</button>
       </div>
 
       <style>{`
@@ -243,38 +259,111 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 16px;
-          padding: 20px;
+          gap: 14px;
+          padding: 16px;
+          transition: background 0.3s;
         }
+
+        /* ===== 배경 무드 ===== */
+        .result-mood-gold { background: linear-gradient(180deg, #fdf6e3 0%, #f5e6c8 100%); }
+        .result-mood-win  { background: linear-gradient(180deg, #fdf2f2 0%, #f5e8e8 100%); }
+        .result-mood-neutral { background: var(--bg); }
+        .result-mood-lose { background: linear-gradient(180deg, #eef3f9 0%, #dde8f4 100%); }
+        .result-mood-doom { background: linear-gradient(180deg, #1a1a2e 0%, #2d1b3d 100%); }
+        .result-mood-idle { background: var(--bg); }
+
+        /* doom 모드에서 텍스트 밝게 */
+        .result-mood-doom .result-meta,
+        .result-mood-doom .result-pnl-label,
+        .result-mood-doom .result-rank { color: #999; }
+        .result-mood-doom .result-rank-go { color: #777; }
+
+        /* ===== 카드 ===== */
         .result-card {
           width: 100%;
           max-width: 320px;
-          padding: 20px;
+          padding: 18px 20px;
           text-align: center;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
+          animation: cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        @keyframes cardReveal {
+          0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* 카드 테두리 glow */
+        .rc-gold { border-color: #d4a90a; box-shadow: 0 0 20px rgba(241,196,15,0.3), 0 0 40px rgba(241,196,15,0.1); }
+        .rc-win  { border-color: #d63031; box-shadow: 0 0 12px rgba(214,48,49,0.15); }
+        .rc-neutral { }
+        .rc-lose { border-color: #4a90e2; box-shadow: 0 0 12px rgba(74,144,226,0.15); }
+        .rc-doom { border-color: #a02525; background: #1e1e2e; box-shadow: 0 0 20px rgba(160,37,37,0.3), inset 0 0 30px rgba(160,37,37,0.05); }
+        .rc-idle { }
+
+        /* ===== 상단 헤더 ===== */
         .result-header {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 10px;
         }
         .result-char-sprite {
-          width: 40px;
-          height: 40px;
+          width: 48px;
+          height: 48px;
           image-rendering: pixelated;
+          animation: charBounce 0.6s ease-out 0.2s both;
+        }
+        @keyframes charBounce {
+          0% { transform: scale(0); }
+          50% { transform: scale(1.2); }
+          70% { transform: scale(0.9); }
+          100% { transform: scale(1); }
         }
         .result-verdict {
-          font-size: 14px;
-          color: var(--text);
+          font-size: 16px;
+          font-weight: bold;
         }
+        .rv-gold { color: #b8860b; }
+        .rv-win  { color: var(--profit); }
+        .rv-neutral { color: var(--text); }
+        .rv-lose { color: var(--loss); }
+        .rv-doom { color: #ff4444; text-shadow: 0 0 8px rgba(255,68,68,0.5); }
+        .rv-idle { color: var(--text-sub); }
+
+        /* ===== 수익률 ===== */
         .result-rate {
           font-family: var(--font-en);
-          font-size: 36px;
+          font-size: 38px;
           line-height: 1.2;
+          font-weight: bold;
         }
+        .rate-anim-win {
+          animation: rateGlow 1.5s ease-in-out infinite;
+        }
+        .rate-anim-lose {
+          animation: rateShake 0.5s ease-in-out 0.3s;
+        }
+        @keyframes rateGlow {
+          0%, 100% { text-shadow: none; }
+          50% { text-shadow: 0 0 12px rgba(214,48,49,0.4); }
+        }
+        @keyframes rateShake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-4px); }
+          40% { transform: translateX(4px); }
+          60% { transform: translateX(-3px); }
+          80% { transform: translateX(3px); }
+        }
+
+        /* doom 모드 수익률 */
+        .result-mood-doom .result-rate {
+          color: #ff4444;
+          text-shadow: 0 0 10px rgba(255,68,68,0.6);
+        }
+
+        /* ===== 잔액 ===== */
         .result-pnl {
           display: flex;
           flex-direction: column;
@@ -288,32 +377,112 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           font-family: var(--font-en);
           font-size: 13px;
         }
-        .result-meme {
-          font-size: 12px;
-          color: var(--text-sub);
-        }
-        .result-divider {
-          width: 60%;
-          height: 1px;
-          background: var(--border);
-          margin: 2px auto;
-        }
-        .result-tier {
+
+        /* ===== 등급 아이콘 박스 ===== */
+        .result-tier-box {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
-          font-size: 14px;
-          color: var(--accent);
+          gap: 6px;
+          padding: 12px 0;
+          margin: 4px 0;
+          border-radius: 8px;
         }
         .result-tier-sprite {
-          width: 28px;
-          height: 28px;
+          width: 56px;
+          height: 56px;
           image-rendering: pixelated;
+          animation: tierPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
         }
+        @keyframes tierPop {
+          0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+          60% { transform: scale(1.15) rotate(3deg); }
+          100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        .result-tier-label {
+          font-size: 15px;
+          font-weight: bold;
+          letter-spacing: 1px;
+        }
+
+        /* 티어 박스 색상 */
+        .tb-gold {
+          background: linear-gradient(135deg, rgba(241,196,15,0.12) 0%, rgba(212,169,10,0.08) 100%);
+          border: 1px dashed rgba(241,196,15,0.3);
+        }
+        .tb-gold .result-tier-label { color: #b8860b; }
+        .tb-gold .result-tier-sprite { animation: tierPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.4s both, goldShine 2s ease-in-out 1s infinite; }
+        @keyframes goldShine {
+          0%, 100% { filter: brightness(1); }
+          50% { filter: brightness(1.3) drop-shadow(0 0 6px rgba(241,196,15,0.5)); }
+        }
+
+        .tb-win {
+          background: rgba(214,48,49,0.06);
+          border: 1px dashed rgba(214,48,49,0.2);
+        }
+        .tb-win .result-tier-label { color: var(--profit); }
+
+        .tb-neutral {
+          background: rgba(0,0,0,0.02);
+          border: 1px dashed var(--border);
+        }
+        .tb-neutral .result-tier-label { color: var(--text-sub); }
+
+        .tb-lose {
+          background: rgba(74,144,226,0.06);
+          border: 1px dashed rgba(74,144,226,0.2);
+        }
+        .tb-lose .result-tier-label { color: var(--loss); }
+
+        .tb-doom {
+          background: rgba(160,37,37,0.15);
+          border: 1px dashed rgba(255,68,68,0.3);
+          animation: doomPulse 1.5s ease-in-out infinite;
+        }
+        .tb-doom .result-tier-label { color: #ff6666; text-shadow: 0 0 6px rgba(255,68,68,0.4); }
+        @keyframes doomPulse {
+          0%, 100% { box-shadow: inset 0 0 0 transparent; }
+          50% { box-shadow: inset 0 0 15px rgba(255,68,68,0.1); }
+        }
+
+        .tb-idle {
+          background: rgba(0,0,0,0.02);
+          border: 1px dashed var(--border);
+        }
+        .tb-idle .result-tier-label { color: var(--text-sub); }
+
+        /* ===== 밈 말풍선 ===== */
+        .result-meme-bubble {
+          position: relative;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-size: 12px;
+          line-height: 1.6;
+          animation: memeSlide 0.4s ease-out 0.6s both;
+        }
+        @keyframes memeSlide {
+          0% { transform: translateY(8px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        .meme-quote {
+          font-size: 16px;
+          font-weight: bold;
+          opacity: 0.3;
+          vertical-align: -1px;
+        }
+
+        .mb-gold { background: rgba(241,196,15,0.08); color: #8b6914; }
+        .mb-win  { background: rgba(214,48,49,0.05); color: var(--text-sub); }
+        .mb-neutral { background: rgba(0,0,0,0.03); color: var(--text-sub); }
+        .mb-lose { background: rgba(74,144,226,0.05); color: var(--text-sub); }
+        .mb-doom { background: rgba(255,68,68,0.08); color: #cc9999; }
+        .mb-idle { background: rgba(0,0,0,0.03); color: var(--text-sub); }
+
+        /* ===== 메타 ===== */
         .result-meta {
           font-size: 11px;
-          color: var(--muted);
+          color: var(--text-sub);
           display: flex;
           justify-content: center;
           gap: 14px;
@@ -347,31 +516,34 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           font-size: 9px;
           color: var(--muted);
         }
+
+        /* doom 모드 랭킹 카드 */
+        .result-mood-doom .result-rank {
+          background: rgba(255,68,68,0.08);
+          border-color: rgba(255,68,68,0.2);
+        }
+        .result-mood-doom .result-rank-num { color: #ff6666; }
+
+        /* ===== 버튼 ===== */
         .result-actions {
           width: 100%;
           max-width: 320px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          align-items: center;
+          gap: 10px;
         }
-        .result-share {
+        .result-retry {
           width: 100%;
           height: 48px;
-          font-family: var(--font-en);
           font-size: 14px;
           letter-spacing: 2px;
         }
-        .result-sub {
-          display: flex;
-          gap: 8px;
-        }
-        .result-sub-btn {
-          flex: 1;
-          height: 42px;
-          font-family: var(--font-en);
-          font-size: 11px;
+        .result-home-btn {
+          height: 36px;
+          width: 120px;
+          font-size: 12px;
           border-radius: 4px;
-          border: 2px solid;
         }
       `}</style>
     </div>
