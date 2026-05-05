@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ait:build": "ait build",
+    "ait:deploy": "ait deploy"
   },
   "dependencies": {
     "@fontsource/press-start-2p": "^5.2.7",
@@ -16,6 +18,8 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@apps-in-toss/cli": "^2.4.7",
+    "@apps-in-toss/web-framework": "^2.4.7",
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
