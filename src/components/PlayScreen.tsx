@@ -1,22 +1,76 @@
-import { useEffect, useRef, useState } from 'react';
-import type { GameState, ScenarioEvent } from '../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Candle, GameState, ScenarioEvent } from '../types';
 import { renderChart } from '../engine/chartRenderer';
 import { GAME_CONFIG } from '../config/gameConfig';
+import { sound, vibrate } from '../utils/sound';
 
 interface PlayScreenProps {
   state: GameState;
-  onTrade: (action: 'BUY' | 'SELL' | 'HOLD') => void;
+  onTrade: (action: 'BUY' | 'SELL') => void;
+  onPreview: () => Candle[];
 }
 
-export function PlayScreen({ state, onTrade }: PlayScreenProps) {
+// 튜토리얼: V자 반등 (TREND_DOWN 0-14, SHOCK_UP 15-16, TREND_UP 17-29) 기준 가이드
+function tutorialStep(tick: number, position: 'NONE' | 'HOLDING'): string {
+  if (tick < 0) return '시작 직후 차트가 떨어지기 시작해요';
+  if (tick <= 6) return '⬇ 급락 중. 떨어지는 칼은 잡지 마세요';
+  if (tick <= 13) return '⚠ 공포 최고조. 조금만 더 기다려보세요';
+  if (tick <= 16) {
+    if (position === 'NONE') return '★ 지금! 정부 개입 발표 → 매수 버튼';
+    return '✓ 매수 성공! 이제 보유';
+  }
+  if (tick <= 24) {
+    if (position === 'HOLDING') return '↑ 반등 중. 좀 더 기다려보세요';
+    return '아쉽네요... 매수 타이밍을 놓쳤어요';
+  }
+  if (position === 'HOLDING') return '★ 고점 근처! 매도 버튼으로 차익 실현';
+  return '거의 끝났어요';
+}
+
+export function PlayScreen({ state, onTrade, onPreview }: PlayScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visibleEvent, setVisibleEvent] = useState<ScenarioEvent | null>(null);
   const [eventKey, setEventKey] = useState(0);
+  const [ghostCandles, setGhostCandles] = useState<Candle[]>([]);
   const [showHint, setShowHint] = useState(() => {
     const played = localStorage.getItem('pixel-stonks-stats');
     if (!played) return true;
     try { return JSON.parse(played).totalGames === 0; } catch { return true; }
   });
+
+  // Y축 확장 윈도우: 새 극값이 나오면 늘리되 절대 줄어들지 않음 (고스트 포함)
+  const yRangeRef = useRef<{ min: number; max: number } | null>(null);
+  const yRange = useMemo(() => {
+    if (state.candles.length === 0) {
+      yRangeRef.current = null;
+      return null;
+    }
+    let candleMin = Infinity;
+    let candleMax = -Infinity;
+    for (const c of state.candles) {
+      if (c.low < candleMin) candleMin = c.low;
+      if (c.high > candleMax) candleMax = c.high;
+    }
+    for (const g of ghostCandles) {
+      if (g.low < candleMin) candleMin = g.low;
+      if (g.high > candleMax) candleMax = g.high;
+    }
+    if (state.entryPrice !== null) {
+      if (state.entryPrice < candleMin) candleMin = state.entryPrice;
+      if (state.entryPrice > candleMax) candleMax = state.entryPrice;
+    }
+    if (!yRangeRef.current) {
+      const span = candleMax - candleMin || candleMax * 0.04;
+      const pad = span * 0.18;
+      yRangeRef.current = { min: candleMin - pad, max: candleMax + pad };
+    } else {
+      const next = { ...yRangeRef.current };
+      if (candleMin < next.min) next.min = candleMin - (candleMax - candleMin) * 0.05;
+      if (candleMax > next.max) next.max = candleMax + (candleMax - candleMin) * 0.05;
+      yRangeRef.current = next;
+    }
+    return yRangeRef.current;
+  }, [state.candles, state.entryPrice, ghostCandles]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,8 +81,29 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
       width: canvas.width,
       height: canvas.height,
       entryPrice: state.entryPrice,
+      yMin: yRange?.min,
+      yMax: yRange?.max,
+      ghostCandles,
     });
-  }, [state.candles, state.entryPrice]);
+  }, [state.candles, state.entryPrice, yRange, ghostCandles]);
+
+  // 미리보기 고스트는 3초 후 자동 사라짐
+  // 실제 캔들과 겹치는 부분은 chartRenderer가 자연스럽게 가림
+  useEffect(() => {
+    if (ghostCandles.length === 0) return;
+    const t = setTimeout(() => setGhostCandles([]), 3000);
+    return () => clearTimeout(t);
+  }, [ghostCandles]);
+
+  // 틱 사운드: 일반 틱은 매우 작게, 마지막 3초는 카운트다운 비프
+  useEffect(() => {
+    if (state.currentTick < 0) return;
+    if (state.timeLeft > 0 && state.timeLeft <= 3) {
+      sound.play('countdown');
+    } else if (state.currentTick > 0) {
+      sound.play('tick');
+    }
+  }, [state.currentTick, state.timeLeft]);
 
   useEffect(() => {
     if (!showHint) return;
@@ -106,22 +181,49 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
       </div>
 
       {/* 첫 판 힌트 */}
-      {showHint && (
+      {showHint && state.mode !== 'tutorial' && (
         <div className="play-hint" onClick={() => setShowHint(false)}>
-          차트를 보고 매수/매도 타이밍을 잡으세요! 매매 기회 3회
+          매수·매도로 차트 타이밍 잡기. 엿보기는 다음 3틱 미리 (1슬롯 소모)
+        </div>
+      )}
+
+      {/* 튜토리얼 가이드 (V자 반등 scenario id=5 기준) */}
+      {state.mode === 'tutorial' && (
+        <div className="play-tutorial">
+          {tutorialStep(state.currentTick, state.position)}
         </div>
       )}
 
       {/* 버튼 */}
       <div className="play-btns">
-        <button className="btn-retro btn-buy play-btn" disabled={!canBuy} onClick={() => onTrade('BUY')}>
+        <button
+          className="btn-retro btn-buy play-btn"
+          disabled={!canBuy}
+          onClick={() => { sound.play('buy'); vibrate(25); onTrade('BUY'); }}
+        >
           ▲ 매수
         </button>
-        <button className="btn-retro btn-sell play-btn" disabled={!canSell} onClick={() => onTrade('SELL')}>
+        <button
+          className="btn-retro btn-sell play-btn"
+          disabled={!canSell}
+          onClick={() => { sound.play('sell'); vibrate(25); onTrade('SELL'); }}
+        >
           ▼ 매도
         </button>
-        <button className="btn-retro btn-hold play-btn" disabled={state.tradesLeft <= 0} onClick={() => onTrade('HOLD')}>
-          ■ 관망
+        <button
+          className="btn-retro btn-hold play-btn"
+          disabled={state.tradesLeft <= 0 || ghostCandles.length > 0}
+          onClick={() => {
+            const ghosts = onPreview();
+            if (ghosts.length > 0) {
+              setGhostCandles(ghosts);
+              sound.play('reveal');
+              vibrate(15);
+            }
+          }}
+        >
+          <span className="play-btn-main">◉ 엿보기</span>
+          <span className="play-btn-sub">다음 3틱</span>
         </button>
       </div>
 
@@ -248,6 +350,18 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           animation: fadeSlideIn 0.3s ease-out;
           cursor: pointer;
         }
+        .play-tutorial {
+          text-align: center;
+          font-size: 12px;
+          color: var(--accent);
+          background: rgba(230,126,34,0.1);
+          border: 1px solid var(--accent);
+          border-radius: 4px;
+          padding: 8px 10px;
+          letter-spacing: 0.5px;
+          font-weight: bold;
+          animation: fadeSlideIn 0.2s ease-out;
+        }
 
         .play-btns {
           display: flex;
@@ -263,12 +377,16 @@ export function PlayScreen({ state, onTrade }: PlayScreenProps) {
           border-radius: 4px;
           border: 2px solid;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          gap: 1px;
           color: #fff;
           transition: opacity 0.15s;
+          line-height: 1.2;
         }
+        .play-btn-main { font-size: 12px; }
+        .play-btn-sub { font-size: 7px; opacity: 0.7; letter-spacing: 0.5px; }
         .play-btn:disabled {
           opacity: 0.25;
           filter: grayscale(0.8);

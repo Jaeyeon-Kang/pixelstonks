@@ -1,10 +1,11 @@
 import type { Candle, MarketState } from '../types';
+import { defaultRng, type RNG } from '../utils/rng';
 
 // Box-Muller 변환: 표준정규분포 난수 생성
-function gaussianRandom(): number {
+function gaussianRandom(rng: RNG): number {
   let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  while (u === 0) u = rng.random();
+  while (v === 0) v = rng.random();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
@@ -17,40 +18,35 @@ const STATE_PARAMS: Record<MarketState, { sigmaMin: number; sigmaMax: number; mu
   SHOCK_DOWN: { sigmaMin: 0,     sigmaMax: 0,     muMin: -0.15,  muMax: -0.08 },
 };
 
-function lerp(min: number, max: number): number {
-  return min + Math.random() * (max - min);
+function lerp(min: number, max: number, rng: RNG): number {
+  return min + rng.random() * (max - min);
 }
 
 /**
  * 주어진 상태(state)에 따라 한 틱의 캔들을 생성한다.
- *
- * close_t = close_{t-1} × (1 + μ_per_tick + σ × Z)
- * open_t = close_{t-1}
- * high_t = max(open, close) × (1 + |random| × σ × 0.5)
- * low_t  = min(open, close) × (1 - |random| × σ × 0.5)
  */
 export function generateCandle(
   prevClose: number,
   state: MarketState,
   time: number,
+  rng: RNG = defaultRng,
 ): Candle {
   const params = STATE_PARAMS[state];
-  const sigma = lerp(params.sigmaMin, params.sigmaMax);
-  const mu = lerp(params.muMin, params.muMax);
+  const sigma = lerp(params.sigmaMin, params.sigmaMax, rng);
+  const mu = lerp(params.muMin, params.muMax, rng);
 
-  const Z = gaussianRandom();
+  const Z = gaussianRandom(rng);
   const open = prevClose;
   const close = prevClose * (1 + mu + sigma * Z);
 
   const highBase = Math.max(open, close);
   const lowBase = Math.min(open, close);
 
-  // 위꼬리/아래꼬리 (BOX/TREND에만 적용, SHOCK은 몸통 그대로)
   const isShock = state === 'SHOCK_UP' || state === 'SHOCK_DOWN';
   const wickFactor = isShock ? 0 : sigma * 0.5;
 
-  const high = highBase * (1 + Math.abs(Math.random()) * wickFactor);
-  const low = lowBase * (1 - Math.abs(Math.random()) * wickFactor);
+  const high = highBase * (1 + Math.abs(rng.random()) * wickFactor);
+  const low = lowBase * (1 - Math.abs(rng.random()) * wickFactor);
 
   return {
     time,

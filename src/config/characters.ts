@@ -1,4 +1,5 @@
 import type { Character } from '../types';
+import { defaultRng, type RNG } from '../utils/rng';
 
 // 패러디 티커 (아는 사람은 피식 웃는 수준)
 // 실제 종목명 사용 불가 (앱인토스 검수) → GTA식 패러디
@@ -70,8 +71,8 @@ export const CHARACTERS: Character[] = [
   },
 ];
 
-export function pickCharacter(): Character {
-  const roll = Math.random();
+export function pickCharacter(rng: RNG = defaultRng): Character {
+  const roll = rng.random();
   let cumulative = 0;
   for (const char of CHARACTERS) {
     cumulative += char.spawnRate;

@@ -28,7 +28,8 @@ export interface Scenario {
   name: string;
   nameKo: string;
   description: string;       // 시나리오 한줄 설명
-  segments: StateSegment[];
+  segments: StateSegment[];           // 정적 세그먼트 (buildSegments가 있으면 무시됨)
+  buildSegments?: (rng: { random(): number }) => StateSegment[]; // 동적 시드 기반
   events: ScenarioEvent[];   // 뉴스 이벤트 목록
   weight: number;
 }
@@ -49,8 +50,11 @@ export interface Character {
 
 export type Position = 'NONE' | 'HOLDING';
 
+export type GameMode = 'normal' | 'challenge' | 'tutorial';
+
 export interface GameState {
   phase: 'HOME' | 'MATCHING' | 'PLAYING' | 'RESULT';
+  mode: GameMode;
   character: Character | null;
   scenario: Scenario | null;
   candles: Candle[];

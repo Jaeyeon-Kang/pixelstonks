@@ -10,6 +10,9 @@ export interface ChartRenderOptions {
   width: number;
   height: number;
   entryPrice: number | null;
+  yMin?: number;
+  yMax?: number;
+  ghostCandles?: Candle[];
 }
 
 /**
@@ -21,7 +24,7 @@ export function renderChart(
   visibleCandles: Candle[],
   options: ChartRenderOptions,
 ): void {
-  const { width, height, entryPrice } = options;
+  const { width, height, entryPrice, yMin, yMax, ghostCandles = [] } = options;
 
   // 픽셀아트 설정
   ctx.imageSmoothingEnabled = false;
@@ -36,15 +39,22 @@ export function renderChart(
   const totalSlots = 30;
   const candleWidth = Math.floor((width - CANDLE_GAP * (totalSlots + 1)) / totalSlots);
 
-  // 가격 범위 계산 (보이는 캔들 기준)
-  const allHighs = visibleCandles.map((c) => c.high);
-  const allLows = visibleCandles.map((c) => c.low);
-  if (entryPrice !== null) {
-    allHighs.push(entryPrice);
-    allLows.push(entryPrice);
+  // 가격 범위: 외부에서 전달된 확장 윈도우 우선 사용 (차트가 줄어들지 않도록)
+  let maxPrice: number;
+  let minPrice: number;
+  if (yMin !== undefined && yMax !== undefined) {
+    minPrice = yMin;
+    maxPrice = yMax;
+  } else {
+    const allHighs = visibleCandles.map((c) => c.high);
+    const allLows = visibleCandles.map((c) => c.low);
+    if (entryPrice !== null) {
+      allHighs.push(entryPrice);
+      allLows.push(entryPrice);
+    }
+    maxPrice = Math.max(...allHighs);
+    minPrice = Math.min(...allLows);
   }
-  const maxPrice = Math.max(...allHighs);
-  const minPrice = Math.min(...allLows);
   const priceRange = maxPrice - minPrice || 1;
   const chartHeight = height - CHART_PADDING_TOP - CHART_PADDING_BOTTOM;
 
@@ -94,15 +104,41 @@ export function renderChart(
     const bodyBottom = priceToY(Math.min(candle.open, candle.close));
     const bodyHeight = Math.max(bodyBottom - bodyTop, 1); // 최소 1px
 
-    // 꼬리 (wick)
     ctx.fillStyle = color;
     const wickX = Math.round(x + candleWidth / 2);
     const wickTop = priceToY(candle.high);
     const wickBottom = priceToY(candle.low);
     ctx.fillRect(wickX, wickTop, WICK_WIDTH, wickBottom - wickTop);
-
-    // 몸통 (body)
     ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+  }
+
+  // 고스트 캔들 (엿보기 미리보기) — 회색, 점선 외곽
+  // 실제 캔들이 이미 점유한 time은 자연스럽게 가려지도록 필터링
+  const visibleTimes = new Set(visibleCandles.map((c) => c.time));
+  const futureGhosts = ghostCandles.filter((g) => !visibleTimes.has(g.time));
+  if (futureGhosts.length > 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    for (const candle of futureGhosts) {
+      const x = Math.round(CANDLE_GAP + candle.time * (candleWidth + CANDLE_GAP));
+      const bodyTop = priceToY(Math.max(candle.open, candle.close));
+      const bodyBottom = priceToY(Math.min(candle.open, candle.close));
+      const bodyHeight = Math.max(bodyBottom - bodyTop, 1);
+      const wickX = Math.round(x + candleWidth / 2);
+      const wickTop = priceToY(candle.high);
+      const wickBottom = priceToY(candle.low);
+
+      ctx.fillStyle = PALETTE.muted;
+      ctx.fillRect(wickX, wickTop, WICK_WIDTH, wickBottom - wickTop);
+
+      // 몸통은 외곽선만 (속이 빈 미리보기 느낌)
+      ctx.strokeStyle = PALETTE.fgSecondary;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 1]);
+      ctx.strokeRect(x + 0.5, bodyTop + 0.5, candleWidth - 1, Math.max(bodyHeight - 1, 1));
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
   }
 
   // 현재가 라벨 (마지막 캔들)

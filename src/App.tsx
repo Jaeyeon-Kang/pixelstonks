@@ -7,6 +7,11 @@ import { ResultScreen } from './components/ResultScreen';
 import { RankingScreen } from './components/RankingScreen';
 import { NicknameModal } from './components/NicknameModal';
 import { loadNickname } from './utils/nickname';
+import { dailyKey } from './utils/rng';
+import type { GameMode } from './types';
+
+const TUTORIAL_KEY = 'pixel-stonks-tutorial-done';
+const CHALLENGE_KEY = 'pixel-stonks-challenge-played';
 
 function loadStats(): { bestScore: number | null; totalGames: number } {
   try {
@@ -20,33 +25,95 @@ function saveStats(bestScore: number | null, totalGames: number) {
   localStorage.setItem('pixel-stonks-stats', JSON.stringify({ bestScore, totalGames }));
 }
 
+function isChallengePlayedToday(): boolean {
+  try {
+    return localStorage.getItem(CHALLENGE_KEY) === dailyKey();
+  } catch {
+    return false;
+  }
+}
+
+function markChallengePlayed() {
+  try {
+    localStorage.setItem(CHALLENGE_KEY, dailyKey());
+  } catch { /* ignore */ }
+}
+
+function isTutorialDone(): boolean {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markTutorialDone() {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, '1');
+  } catch { /* ignore */ }
+}
+
 export default function App() {
-  const { state, startGame, executeTrade, goHome } = useGameLoop();
+  const { state, startGame, executeTrade, previewNext, goHome } = useGameLoop();
   const [stats, setStats] = useState(loadStats);
   const [showRanking, setShowRanking] = useState(false);
   const [showNickModal, setShowNickModal] = useState(false);
   const [nickname, setNickname] = useState<string | null>(loadNickname);
+  const [pendingMode, setPendingMode] = useState<GameMode>('normal');
+  const [challengePlayedToday, setChallengePlayedToday] = useState(isChallengePlayedToday);
 
   const openRanking = useCallback(() => setShowRanking(true), []);
   const closeRanking = useCallback(() => setShowRanking(false), []);
 
-  // START 클릭 → 닉네임 없으면 모달, 있으면 바로 게임
-  const handleStart = useCallback(() => {
+  const launch = useCallback((mode: GameMode) => {
+    if (mode === 'challenge') {
+      if (isChallengePlayedToday()) return;
+      markChallengePlayed();
+      setChallengePlayedToday(true);
+    }
+    if (mode === 'tutorial') {
+      markTutorialDone();
+    }
     if (!nickname) {
+      setPendingMode(mode);
       setShowNickModal(true);
     } else {
-      startGame();
+      startGame(mode);
     }
   }, [nickname, startGame]);
 
-  // 닉네임 확인 후 게임 시작
+  const handleStart = useCallback(() => launch('normal'), [launch]);
+  const handleChallenge = useCallback(() => launch('challenge'), [launch]);
+  const handleTutorial = useCallback(() => launch('tutorial'), [launch]);
+
+  // 첫 실행: 닉네임 모달 → 확인 후 튜토리얼 자동 진입
+  const [bootChecked, setBootChecked] = useState(false);
+  useEffect(() => {
+    if (bootChecked) return;
+    setBootChecked(true);
+    if (!isTutorialDone() && stats.totalGames === 0 && state.phase === 'HOME') {
+      // 닉네임 없으면 닉 입력 후 튜토리얼, 있으면 바로
+      if (!nickname) {
+        setPendingMode('tutorial');
+        setShowNickModal(true);
+      } else {
+        markTutorialDone();
+        startGame('tutorial');
+      }
+    }
+  }, [bootChecked, stats.totalGames, state.phase, nickname, startGame]);
+
   const handleNicknameConfirm = useCallback((nick: string) => {
     setNickname(nick);
     setShowNickModal(false);
-    startGame();
-  }, [startGame]);
+    if (pendingMode === 'tutorial') markTutorialDone();
+    if (pendingMode === 'challenge') {
+      markChallengePlayed();
+      setChallengePlayedToday(true);
+    }
+    startGame(pendingMode);
+  }, [startGame, pendingMode]);
 
-  // 닉네임 변경 (홈에서 터치)
   const [nickEditMode, setNickEditMode] = useState(false);
   const handleChangeNick = useCallback(() => setNickEditMode(true), []);
   const handleNickEditConfirm = useCallback((nick: string) => {
@@ -54,8 +121,9 @@ export default function App() {
     setNickEditMode(false);
   }, []);
 
+  // 결과 → stats 갱신 (튜토리얼은 통계에서 제외)
   useEffect(() => {
-    if (state.phase === 'RESULT' && state.finalProfitRate !== null) {
+    if (state.phase === 'RESULT' && state.finalProfitRate !== null && state.mode !== 'tutorial') {
       setStats((prev) => {
         const newBest = prev.bestScore === null
           ? state.finalProfitRate!
@@ -65,19 +133,17 @@ export default function App() {
         return { bestScore: newBest, totalGames: newTotal };
       });
     }
-  }, [state.phase, state.finalProfitRate]);
+  }, [state.phase, state.finalProfitRate, state.mode]);
 
-  // 화면 키: 랭킹이면 'RANKING', 아니면 게임 phase
   const screenKey = showRanking ? 'RANKING' : state.phase;
+  const tutorialDone = isTutorialDone();
 
   return (
     <div className="app-root">
       <div className="game-frame">
-        {/* CRT 효과 오버레이 */}
         <div className="scanlines" />
         <div className="vignette" />
 
-        {/* 화면 라우팅 */}
         <div className="screen-container screen-enter" key={screenKey}>
           {showRanking ? (
             <RankingScreen onBack={closeRanking} />
@@ -86,23 +152,27 @@ export default function App() {
               {state.phase === 'HOME' && (
                 <HomeScreen
                   onStart={handleStart}
+                  onChallenge={handleChallenge}
+                  onTutorial={handleTutorial}
                   onRanking={openRanking}
                   bestScore={stats.bestScore}
                   totalGames={stats.totalGames}
                   nickname={nickname}
                   onChangeNick={handleChangeNick}
+                  challengePlayedToday={challengePlayedToday}
+                  tutorialDone={tutorialDone}
                 />
               )}
               {state.phase === 'MATCHING' && state.character && (
-                <MatchingScreen character={state.character} scenario={state.scenario} />
+                <MatchingScreen character={state.character} mode={state.mode} />
               )}
               {state.phase === 'PLAYING' && (
-                <PlayScreen state={state} onTrade={executeTrade} />
+                <PlayScreen state={state} onTrade={executeTrade} onPreview={previewNext} />
               )}
               {state.phase === 'RESULT' && (
                 <ResultScreen
                   state={state}
-                  onRestart={handleStart}
+                  onRestart={() => launch(state.mode === 'tutorial' ? 'normal' : state.mode)}
                   onHome={goHome}
                   onRanking={openRanking}
                 />
@@ -111,7 +181,6 @@ export default function App() {
           )}
         </div>
 
-        {/* 닉네임 입력 모달 */}
         {showNickModal && (
           <NicknameModal onConfirm={handleNicknameConfirm} />
         )}

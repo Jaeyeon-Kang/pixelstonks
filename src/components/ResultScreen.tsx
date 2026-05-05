@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameState, ProfitTier } from '../types';
 import { submitScore } from '../services/leaderboard';
 import { GAME_CONFIG } from '../config/gameConfig';
+import { sound, vibrate } from '../utils/sound';
+import { loadNickname } from '../utils/nickname';
+import { buildShareCard, shareCard } from '../utils/shareCard';
 
 interface ResultScreenProps {
   state: GameState;
@@ -169,16 +172,57 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
   const [myRank, setMyRank] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const submitted = useRef(false);
+  const [sharing, setSharing] = useState(false);
+
+  const handleShare = async () => {
+    if (sharing) return;
+    setSharing(true);
+    sound.play('click');
+    try {
+      const blob = await buildShareCard(
+        {
+          profitRate,
+          tierLabel: tierInfo.label,
+          characterName: state.character?.name ?? '',
+          scenarioName: state.scenario?.nameKo ?? '',
+          nickname: loadNickname(),
+          isChallenge: state.mode === 'challenge',
+        },
+        state.character?.sprite ?? '',
+        tierInfo.sprite,
+      );
+      if (!blob) return;
+      const sign = profitRate >= 0 ? '+' : '';
+      const text = `[픽셀단타왕] ${sign}${profitRate.toFixed(1)}% · ${tierInfo.label}`;
+      await shareCard(blob, text);
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     if (submitted.current) return;
     if (!state.character || !state.scenario) return;
     submitted.current = true;
     setSubmitting(true);
+
+    // 사운드/햅틱: 결과에 따라 다르게
+    if (neverBought) {
+      sound.play('click');
+    } else if (profitRate > 0) {
+      sound.play('win');
+      vibrate([40, 30, 40, 30, 80]);
+    } else if (profitRate < 0) {
+      sound.play('loss');
+      vibrate(180);
+    } else {
+      sound.play('click');
+    }
+
     submitScore(profitRate, state.character.id, state.scenario.id)
       .then(({ rank }) => setMyRank(rank))
       .finally(() => setSubmitting(false));
-  }, [profitRate, state.character, state.scenario]);
+  }, [profitRate, state.character, state.scenario, neverBought]);
 
   // 티어별 무드 분류
   const tierMood = (() => {
@@ -249,7 +293,12 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
         <button className="btn-retro btn-pixel result-retry" onClick={onRestart}>
           다시하기
         </button>
-        <button className="btn-retro btn-sub result-home-btn" onClick={onHome}>홈으로</button>
+        <div className="result-actions-row">
+          <button className="btn-retro btn-sub result-share-btn" onClick={handleShare} disabled={sharing}>
+            {sharing ? '준비중...' : '공유'}
+          </button>
+          <button className="btn-retro btn-sub result-home-btn" onClick={onHome}>홈으로</button>
+        </div>
       </div>
 
       <style>{`
@@ -539,11 +588,21 @@ export function ResultScreen({ state, onRestart, onHome, onRanking }: ResultScre
           font-size: 14px;
           letter-spacing: 2px;
         }
-        .result-home-btn {
+        .result-actions-row {
+          display: flex;
+          gap: 8px;
+        }
+        .result-home-btn,
+        .result-share-btn {
           height: 36px;
-          width: 120px;
+          flex: 1;
+          min-width: 100px;
           font-size: 12px;
           border-radius: 4px;
+        }
+        .result-share-btn {
+          color: var(--accent);
+          border-color: var(--accent);
         }
       `}</style>
     </div>

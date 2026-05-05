@@ -125,7 +125,8 @@ export const SCENARIOS: Scenario[] = [
     nameKo: '롤러코스터',
     description: '미친 변동성, 방향 예측 불가',
     weight: 8,
-    segments: buildRollerCoaster(),
+    segments: [],
+    buildSegments: (rng) => buildRollerCoaster(rng),
     events: [
       { tick: 0, headline: '[긴급] 변동성 지수 급등, 방향 예측 불가', type: 'shock' },
       { tick: 8, headline: '[긴급] 알고리즘 매매 폭주, 급등락 반복', type: 'shock' },
@@ -172,10 +173,10 @@ export const SCENARIOS: Scenario[] = [
 ];
 
 // 롤러코스터: SHOCK(2) 15회, 방향 랜덤
-function buildRollerCoaster(): StateSegment[] {
+function buildRollerCoaster(rng: { random(): number }): StateSegment[] {
   const segments: StateSegment[] = [];
   for (let i = 0; i < 15; i++) {
-    const direction = Math.random() > 0.5 ? 'SHOCK_UP' : 'SHOCK_DOWN';
+    const direction = rng.random() > 0.5 ? 'SHOCK_UP' : 'SHOCK_DOWN';
     segments.push({ state: direction, duration: 2 });
   }
   return segments;

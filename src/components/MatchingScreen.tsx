@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
-import type { Character, Scenario } from '../types';
+import type { Character, GameMode } from '../types';
 import { CHARACTERS } from '../config/characters';
+import { sound } from '../utils/sound';
 
 interface MatchingScreenProps {
   character: Character;
-  scenario?: Scenario | null;
+  mode?: GameMode;
 }
 
-export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
+const MODE_BADGE: Record<GameMode, string | null> = {
+  normal: null,
+  challenge: '★ 오늘의 챌린지',
+  tutorial: '튜토리얼 · V자 반등 강제',
+};
+
+export function MatchingScreen({ character, mode = 'normal' }: MatchingScreenProps) {
   const [phase, setPhase] = useState<'spinning' | 'revealed'>('spinning');
   const [displayIdx, setDisplayIdx] = useState(0);
   const [countdown, setCountdown] = useState(3);
@@ -17,10 +24,12 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
     let timer: ReturnType<typeof setTimeout>;
     const spin = () => {
       setDisplayIdx((prev) => (prev + 1) % CHARACTERS.length);
+      sound.play('tick');
       speed += 15;
       if (speed < 400) {
         timer = setTimeout(spin, speed);
       } else {
+        sound.play('reveal');
         setPhase('revealed');
       }
     };
@@ -33,6 +42,7 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) { clearInterval(timer); return 0; }
+        sound.play('countdown');
         return prev - 1;
       });
     }, 700);
@@ -41,8 +51,11 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
 
   const displayChar = phase === 'spinning' ? CHARACTERS[displayIdx] : character;
 
+  const badge = MODE_BADGE[mode];
+
   return (
     <div className="matching">
+      {badge && <div className={`matching-badge mb-${mode}`}>{badge}</div>}
       <div className="matching-label">오늘의 종목은...</div>
 
       <div className="matching-slot">
@@ -55,12 +68,7 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
         {phase === 'revealed' && (
           <div className="matching-info">
             <div className="matching-name">{displayChar.name}</div>
-            {scenario && (
-              <div className="matching-scenario pixel-panel">
-                <div className="matching-scenario-title">[{scenario.nameKo}]</div>
-                <div className="matching-scenario-desc">{scenario.description}</div>
-              </div>
-            )}
+            <div className="matching-tagline">차트는 직접 읽어라</div>
           </div>
         )}
       </div>
@@ -80,6 +88,23 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
           justify-content: center;
           gap: 28px;
           padding: 24px;
+        }
+        .matching-badge {
+          font-size: 11px;
+          padding: 6px 12px;
+          border-radius: 4px;
+          letter-spacing: 1px;
+          margin-bottom: -10px;
+        }
+        .matching-badge.mb-challenge {
+          color: var(--gold);
+          background: rgba(243,156,18,0.1);
+          border: 1px solid var(--gold);
+        }
+        .matching-badge.mb-tutorial {
+          color: var(--accent);
+          background: rgba(230,126,34,0.1);
+          border: 1px dashed var(--accent);
         }
         .matching-label {
           font-size: 14px;
@@ -135,18 +160,10 @@ export function MatchingScreen({ character, scenario }: MatchingScreenProps) {
           font-size: 16px;
           color: var(--text);
         }
-        .matching-scenario {
-          padding: 10px 16px;
-        }
-        .matching-scenario-title {
-          font-size: 13px;
-          color: var(--accent);
-          font-weight: bold;
-        }
-        .matching-scenario-desc {
+        .matching-tagline {
           font-size: 11px;
-          color: var(--text-sub);
-          margin-top: 4px;
+          color: var(--muted);
+          letter-spacing: 1px;
         }
         .matching-countdown {
           font-family: var(--font-en);
